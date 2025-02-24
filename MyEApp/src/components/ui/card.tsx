@@ -1,79 +1,107 @@
-import * as React from "react"
+// card.tsx
+import React from 'react';
+import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface CardProps {
+  /** Optional styling for the outer container. */
+  style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
+}
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
-Card.displayName = "Card"
+/**
+ * A basic "Card" container for React Native.
+ */
+export function Card({ style, children }: CardProps) {
+  return <View style={[styles.card, style]}>{children}</View>;
+}
 
-const CardHeader = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
-    {...props}
-  />
-))
-CardHeader.displayName = "CardHeader"
+/**
+ * Header area of the card (like a title section).
+ */
+export function CardHeader({
+  style,
+  children,
+}: {
+  style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
+}) {
+  return <View style={[styles.header, style]}>{children}</View>;
+}
 
-const CardTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h3
-    ref={ref}
-    className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
-      className
-    )}
-    {...props}
-  />
-))
-CardTitle.displayName = "CardTitle"
+/**
+ * Title text in the header.
+ */
+export function CardTitle({ children }: { children?: React.ReactNode }) {
+  return <Text style={styles.title}>{children}</Text>;
+}
 
-const CardDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
-))
-CardDescription.displayName = "CardDescription"
+/**
+ * Description text in the header or content area.
+ */
+export function CardDescription({ children }: { children?: React.ReactNode }) {
+  return <Text style={styles.description}>{children}</Text>;
+}
 
-const CardContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-))
-CardContent.displayName = "CardContent"
+/**
+ * Main content area of the card.
+ */
+export function CardContent({
+  style,
+  children,
+}: {
+  style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
+}) {
+  return <View style={[styles.content, style]}>{children}</View>;
+}
 
-const CardFooter = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
-    {...props}
-  />
-))
-CardFooter.displayName = "CardFooter"
+/**
+ * Footer area of the card (e.g., for buttons).
+ */
+export function CardFooter({
+  style,
+  children,
+}: {
+  style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
+}) {
+  return <View style={[styles.footer, style]}>{children}</View>;
+}
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#fff',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    padding: 0,
+    marginVertical: 8,
+  },
+  header: {
+    padding: 12,
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  description: {
+    fontSize: 14,
+    color: '#666',
+  },
+  content: {
+    padding: 12,
+  },
+  footer: {
+    padding: 12,
+    borderTopColor: '#eee',
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+});

@@ -1,26 +1,47 @@
-import * as React from "react"
-import * as ProgressPrimitive from "@radix-ui/react-progress"
+// progress.tsx
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface ProgressProps {
+  /** Value of progress from 0 to 100. */
+  value?: number;
+  /** Height of the progress bar. */
+  height?: number;
+  /** Background color for the track. */
+  trackColor?: string;
+  /** Background color for the filled portion. */
+  fillColor?: string;
+}
 
-const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
-  <ProgressPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
-      className
-    )}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all"
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    />
-  </ProgressPrimitive.Root>
-))
-Progress.displayName = ProgressPrimitive.Root.displayName
+/**
+ * A minimal progress bar in React Native.
+ */
+export function Progress({
+  value = 0,
+  height = 10,
+  trackColor = '#eee',
+  fillColor = '#007bff',
+}: ProgressProps) {
+  const clampedValue = Math.max(0, Math.min(100, value));
+  return (
+    <View style={[styles.container, { height, backgroundColor: trackColor }]}>
+      <View
+        style={[
+          styles.fill,
+          { width: `${clampedValue}%`, backgroundColor: fillColor },
+        ]}
+      />
+    </View>
+  );
+}
 
-export { Progress }
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  fill: {
+    height: '100%',
+  },
+});

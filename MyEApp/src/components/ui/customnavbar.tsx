@@ -1,26 +1,42 @@
-import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { NavProps } from "react-day-picker";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+// customnavbar.tsx
+import React from 'react';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
-export function CustomNavbar({ onPreviousClick, onNextClick, className }: NavProps) {
+interface CustomNavbarProps {
+  onPreviousClick?: () => void;
+  onNextClick?: () => void;
+}
+
+/**
+ * A minimal “previous/next” navbar for a calendar in RN.
+ * You’d integrate this with your chosen calendar library’s props.
+ */
+export function CustomNavbar({ onPreviousClick, onNextClick }: CustomNavbarProps) {
   return (
-    <div className={cn("flex items-center justify-between", className)}>
-      <button
-        onClick={onPreviousClick}
-        className={cn(buttonVariants({ variant: "outline" }), "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100")}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <button
-        onClick={onNextClick}
-        className={cn(buttonVariants({ variant: "outline" }), "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100")}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
-    </div>
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.button} onPress={onPreviousClick}>
+        <Text style={styles.arrow}>{'<'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={onNextClick}>
+        <Text style={styles.arrow}>{'>'}</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
-export default CustomNavbar; 
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  button: {
+    backgroundColor: '#eee',
+    padding: 8,
+    borderRadius: 4,
+  },
+  arrow: {
+    fontSize: 16,
+  },
+});

@@ -1,29 +1,47 @@
-import * as React from "react"
-import * as SeparatorPrimitive from "@radix-ui/react-separator"
+// separator.tsx
+import React from 'react';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface SeparatorProps {
+  /** “horizontal” or “vertical” */
+  orientation?: 'horizontal' | 'vertical';
+  /** If true, purely decorative (no screen reader text). */
+  decorative?: boolean; // no direct effect in RN
+  /** Additional style. */
+  style?: StyleProp<ViewStyle>;
+}
 
-const Separator = React.forwardRef<
-  React.ElementRef<typeof SeparatorPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
->(
-  (
-    { className, orientation = "horizontal", decorative = true, ...props },
-    ref
-  ) => (
-    <SeparatorPrimitive.Root
-      ref={ref}
-      decorative={decorative}
-      orientation={orientation}
-      className={cn(
-        "shrink-0 bg-border",
-        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
-        className
-      )}
-      {...props}
+/**
+ * A minimal “Separator” in RN, which is basically a thin <View> with a style.
+ */
+export function Separator({
+  orientation = 'horizontal',
+  decorative = true,
+  style,
+}: SeparatorProps) {
+  const isHorizontal = orientation === 'horizontal';
+  return (
+    <View
+      style={[
+        styles.base,
+        isHorizontal ? styles.horizontal : styles.vertical,
+        style,
+      ]}
+      // For accessibility, you might set accessibilityRole="none" if decorative
     />
-  )
-)
-Separator.displayName = SeparatorPrimitive.Root.displayName
+  );
+}
 
-export { Separator }
+const styles = StyleSheet.create({
+  base: {
+    backgroundColor: '#ccc',
+  },
+  horizontal: {
+    width: '100%',
+    height: 1,
+  },
+  vertical: {
+    width: 1,
+    height: '100%',
+  },
+});

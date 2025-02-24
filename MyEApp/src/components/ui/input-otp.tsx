@@ -1,69 +1,56 @@
-import * as React from "react"
-import { OTPInput, OTPInputContext } from "input-otp"
-import { Dot } from "lucide-react"
+// input-otp.tsx
+import React, { useState } from 'react';
+import { View, TextInput, StyleSheet } from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface InputOTPProps {
+  length: number;
+  onChangeOTP?: (otp: string) => void;
+}
 
-const InputOTP = React.forwardRef<
-  React.ElementRef<typeof OTPInput>,
-  React.ComponentPropsWithoutRef<typeof OTPInput>
->(({ className, containerClassName, ...props }, ref) => (
-  <OTPInput
-    ref={ref}
-    containerClassName={cn(
-      "flex items-center gap-2 has-[:disabled]:opacity-50",
-      containerClassName
-    )}
-    className={cn("disabled:cursor-not-allowed", className)}
-    {...props}
-  />
-))
-InputOTP.displayName = "InputOTP"
+/**
+ * A minimal OTP input that renders `length` text inputs in a row.
+ */
+export function InputOTP({ length, onChangeOTP }: InputOTPProps) {
+  const [values, setValues] = useState<string[]>(Array(length).fill(''));
 
-const InputOTPGroup = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div">
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex items-center", className)} {...props} />
-))
-InputOTPGroup.displayName = "InputOTPGroup"
-
-const InputOTPSlot = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div"> & { index: number }
->(({ index, className, ...props }, ref) => {
-  const inputOTPContext = React.useContext(OTPInputContext)
-  const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index]
+  const handleChange = (text: string, index: number) => {
+    const newValues = [...values];
+    newValues[index] = text.slice(-1); // only keep last char
+    setValues(newValues);
+    if (onChangeOTP) {
+      onChangeOTP(newValues.join(''));
+    }
+    // optionally auto-focus next input if text is entered
+  };
 
   return (
-    <div
-      ref={ref}
-      className={cn(
-        "relative flex h-10 w-10 items-center justify-center border-y border-r border-input text-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
-        isActive && "z-10 ring-2 ring-ring ring-offset-background",
-        className
-      )}
-      {...props}
-    >
-      {char}
-      {hasFakeCaret && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-4 w-px animate-caret-blink bg-foreground duration-1000" />
-        </div>
-      )}
-    </div>
-  )
-})
-InputOTPSlot.displayName = "InputOTPSlot"
+    <View style={styles.container}>
+      {values.map((val, index) => (
+        <TextInput
+          key={index}
+          style={styles.box}
+          keyboardType="numeric"
+          maxLength={1}
+          value={val}
+          onChangeText={(text) => handleChange(text, index)}
+        />
+      ))}
+    </View>
+  );
+}
 
-const InputOTPSeparator = React.forwardRef<
-  React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div">
->(({ ...props }, ref) => (
-  <div ref={ref} role="separator" {...props}>
-    <Dot />
-  </div>
-))
-InputOTPSeparator.displayName = "InputOTPSeparator"
-
-export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  box: {
+    width: 40,
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    borderRadius: 4,
+  },
+});

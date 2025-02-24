@@ -1,43 +1,94 @@
-import { GripVertical } from "lucide-react"
-import * as ResizablePrimitive from "react-resizable-panels"
+// resizable.tsx
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  ViewStyle,
+  StyleProp,
+} from 'react-native';
 
-import { cn } from "@/lib/utils"
 
-const ResizablePanelGroup = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof ResizablePrimitive.PanelGroup>) => (
-  <ResizablePrimitive.PanelGroup
-    className={cn(
-      "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
-      className
-    )}
-    {...props}
-  />
-)
+interface PanelProps {
+  /** Panel content. */
+  children?: React.ReactNode;
+  /** Additional style for the panel. */
+  style?: StyleProp<ViewStyle>;
+}
 
-const ResizablePanel = ResizablePrimitive.Panel
+interface PanelGroupProps {
+  /** If true, panels are stacked vertically; otherwise horizontally. */
+  direction?: 'horizontal' | 'vertical';
+  /** Additional style for the group container. */
+  style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
+}
 
-const ResizableHandle = ({
-  withHandle,
-  className,
-  ...props
-}: React.ComponentProps<typeof ResizablePrimitive.PanelResizeHandle> & {
-  withHandle?: boolean
-}) => (
-  <ResizablePrimitive.PanelResizeHandle
-    className={cn(
-      "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0 [&[data-panel-group-direction=vertical]>div]:rotate-90",
-      className
-    )}
-    {...props}
-  >
-    {withHandle && (
-      <div className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
-        <GripVertical className="h-2.5 w-2.5" />
-      </div>
-    )}
-  </ResizablePrimitive.PanelResizeHandle>
-)
+interface HandleProps {
+  /** If true, show a handle icon. */
+  withHandle?: boolean;
+  /** Called when user wants to “resize” (in this minimal example, we just simulate). */
+  onPress?: () => void;
+}
 
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+/**
+ * Minimal “PanelGroup” that can be horizontal or vertical.
+ */
+export function ResizablePanelGroup({
+  direction = 'horizontal',
+  style,
+  children,
+}: PanelGroupProps) {
+  const flexDirection = direction === 'horizontal' ? 'row' : 'column';
+
+  return (
+    <View style={[{ flexDirection, flex: 1 }, style]}>{children}</View>
+  );
+}
+
+/**
+ * Minimal “Panel” that just wraps content in a <View>.
+ */
+export function ResizablePanel({ children, style }: PanelProps) {
+  return <View style={[styles.panel, style]}>{children}</View>;
+}
+
+/**
+ * Minimal “Handle” that toggles some state or calls a prop. 
+ * No real drag here—just a placeholder.
+ */
+export function ResizableHandle({ withHandle, onPress }: HandleProps) {
+  return (
+    <TouchableOpacity style={styles.handle} onPress={onPress}>
+      {withHandle && (
+        <View style={styles.handleIcon}>
+          <GripVertical width={16} height={16} color="#666" />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  panel: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  handle: {
+    // This is a minimal placeholder “divider.”
+    backgroundColor: '#eee',
+    width: 8,
+    // or if vertical layout, adjust height
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  handleIcon: {
+    backgroundColor: '#ccc',
+    borderRadius: 4,
+    padding: 4,
+  },
+});

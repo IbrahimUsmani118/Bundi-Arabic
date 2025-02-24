@@ -1,29 +1,72 @@
-import * as React from "react"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+// popover.tsx
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  Pressable,
+} from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface PopoverProps {
+  /** The popover trigger text. */
+  triggerLabel: string;
+  /** The content inside the popover. */
+  content: React.ReactNode;
+}
 
-const Popover = PopoverPrimitive.Root
+/**
+ * A minimal “popover” in RN, using a Modal centered on screen.
+ * For advanced positioning near the trigger, see specialized libs or measure approach.
+ */
+export function Popover({ triggerLabel, content }: PopoverProps) {
+  const [visible, setVisible] = useState(false);
 
-const PopoverTrigger = PopoverPrimitive.Trigger
+  const openPopover = () => setVisible(true);
+  const closePopover = () => setVisible(false);
 
-const PopoverContent = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
-      ref={ref}
-      align={align}
-      sideOffset={sideOffset}
-      className={cn(
-        "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        className
-      )}
-      {...props}
-    />
-  </PopoverPrimitive.Portal>
-))
-PopoverContent.displayName = PopoverPrimitive.Content.displayName
+  return (
+    <View>
+      <TouchableOpacity style={styles.trigger} onPress={openPopover}>
+        <Text style={styles.triggerText}>{triggerLabel}</Text>
+      </TouchableOpacity>
 
-export { Popover, PopoverTrigger, PopoverContent }
+      <Modal
+        transparent
+        visible={visible}
+        onRequestClose={closePopover}
+        animationType="fade"
+      >
+        <Pressable style={styles.overlay} onPress={closePopover}>
+          <View style={styles.contentContainer}>
+            {typeof content === 'string' ? <Text>{content}</Text> : content}
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  trigger: {
+    backgroundColor: '#007bff',
+    padding: 8,
+    borderRadius: 4,
+  },
+  triggerText: {
+    color: '#fff',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  contentContainer: {
+    width: 200,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+  },
+});

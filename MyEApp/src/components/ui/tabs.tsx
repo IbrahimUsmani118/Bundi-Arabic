@@ -1,53 +1,78 @@
-import * as React from "react"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
+// components/Tabs.tsx
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle } from "react-native";
 
-import { cn } from "@/lib/utils"
+export type Tab = {
+  key: string;
+  title: string;
+  content: React.ReactNode;
+};
 
-const Tabs = TabsPrimitive.Root
+export interface TabsProps {
+  tabs: Tab[];
+  initialKey?: string;
+  style?: ViewStyle;
+}
 
-const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-      className
-    )}
-    {...props}
-  />
-))
-TabsList.displayName = TabsPrimitive.List.displayName
+export const Tabs: React.FC<TabsProps> = ({ tabs, initialKey, style }) => {
+  const [activeKey, setActiveKey] = useState(initialKey || tabs[0].key);
+  const activeTab = tabs.find((tab) => tab.key === activeKey);
 
-const TabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
+  return (
+    <View style={[styles.tabsContainer, style]}>
+      <View style={styles.tabsList}>
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab.key}
+            onPress={() => setActiveKey(tab.key)}
+            style={[styles.tabTrigger, activeKey === tab.key && styles.tabTriggerActive]}
+          >
+            <Text style={[styles.tabTriggerText, activeKey === tab.key && styles.tabTriggerTextActive]}>
+              {tab.title}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={styles.tabsContent}>{activeTab?.content}</View>
+    </View>
+  );
+};
 
-const TabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={cn(
-      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-      className
-    )}
-    {...props}
-  />
-))
-TabsContent.displayName = TabsPrimitive.Content.displayName
-
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+const styles = StyleSheet.create({
+  tabsContainer: {
+    width: "100%",
+  },
+  tabsList: {
+    flexDirection: "row",
+    backgroundColor: "#f3f4f6",
+    padding: 4,
+    borderRadius: 4,
+  },
+  tabTrigger: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 4,
+    borderRadius: 4,
+    backgroundColor: "#e5e7eb",
+  },
+  tabTriggerActive: {
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  tabTriggerText: {
+    fontSize: 16,
+    color: "#374151",
+  },
+  tabTriggerTextActive: {
+    fontWeight: "bold",
+    color: "#111827",
+  },
+  tabsContent: {
+    marginTop: 12,
+    padding: 8,
+    backgroundColor: "#fff",
+    borderRadius: 4,
+  },
+});

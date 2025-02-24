@@ -1,46 +1,57 @@
-import * as React from "react";
-import * as SliderPrimitive from "@radix-ui/react-slider";
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import RNCommunitySlider from '@react-native-community/slider';
 
-import { cn } from "@/lib/utils";
+interface SliderProps {
+  value?: number;
+  onValueChange?: (val: number) => void;
+  minimumValue?: number;
+  maximumValue?: number;
+  style?: StyleProp<ViewStyle>;
+}
 
-const Slider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, orientation = "horizontal", ...props }, ref) => {
+/**
+ * A minimal “Slider” using `@react-native-community/slider` that manages its own state.
+ */
+export function Slider({
+  value = 0,
+  onValueChange,
+  minimumValue = 0,
+  maximumValue = 100,
+  style,
+}: SliderProps) {
+  // Manage slider's value in local state.
+  const [sliderValue, setSliderValue] = useState(value);
+
+  // Update state if parent value changes.
+  useEffect(() => {
+    setSliderValue(value);
+  }, [value]);
+
+  const handleValueChange = (val: number) => {
+    setSliderValue(val);
+    if (onValueChange) {
+      onValueChange(val);
+    }
+  };
+
   return (
-    <SliderPrimitive.Root
-      ref={ref}
-      orientation={orientation}
-      className={cn(
-        "relative flex touch-none select-none cursor-pointer",
-        orientation === "horizontal"
-          ? "h-full w-full flex-row"
-          : "h-full w-full flex-col",
-        className
-      )}
-      {...props}
-    >
-      <SliderPrimitive.Track
-        className={cn(
-          "relative grow overflow-hidden rounded-full bg-gray-200",
-          orientation === "horizontal" ? "h-2 w-full" : "h-full w-2"
-        )}
-      >
-        <SliderPrimitive.Range
-          className={cn(
-            "absolute bg-black",
-            orientation === "horizontal" ? "h-full" : "w-full bottom-0"
-          )}
-        />
-      </SliderPrimitive.Track>
-      <SliderPrimitive.Thumb
-        className="block h-5 w-5 rounded-full border-2 border-black bg-white ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:cursor-grab active:cursor-grabbing"
-      />
-    </SliderPrimitive.Root>
+    <RNCommunitySlider
+      style={[styles.slider, style]}
+      value={sliderValue}
+      minimumValue={minimumValue}
+      maximumValue={maximumValue}
+      onValueChange={handleValueChange}
+      minimumTrackTintColor="#000"
+      maximumTrackTintColor="#ccc"
+      thumbTintColor="#000"
+    />
   );
+}
+
+const styles = StyleSheet.create({
+  slider: {
+    width: '100%',
+    height: 40,
+  },
 });
-
-Slider.displayName = "Slider";
-
-export { Slider };
-

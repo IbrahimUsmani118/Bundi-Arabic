@@ -1,24 +1,37 @@
-import * as React from "react"
+// components/Textarea.tsx
+import React, { forwardRef } from "react";
+import { TextInput, StyleSheet, TextInputProps } from "react-native";
 
-import { cn } from "@/lib/utils"
+// Extend TextInputProps so our Textarea accepts all standard props.
+export interface TextareaProps extends TextInputProps {}
 
-export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
-
-const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, ...props }, ref) => {
+const Textarea = forwardRef<TextInput, TextareaProps>(
+  ({ style, ...props }, ref) => {
     return (
-      <textarea
-        className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
+      <TextInput
         ref={ref}
+        multiline
+        style={[styles.textarea, style]}
+        placeholderTextColor="#6b7280"
         {...props}
       />
-    )
+    );
   }
-)
-Textarea.displayName = "Textarea"
+);
+Textarea.displayName = "Textarea";
 
-export { Textarea }
+const styles = StyleSheet.create({
+  textarea: {
+    minHeight: 80,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    borderRadius: 4,
+  },
+});
+
+export { Textarea };

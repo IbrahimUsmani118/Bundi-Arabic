@@ -1,24 +1,31 @@
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-import { cva, type VariantProps } from "class-variance-authority"
+// label.tsx
+import React, { forwardRef } from 'react';
+import { Text, StyleSheet, StyleProp, TextStyle } from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface LabelProps {
+  /** The label text. */
+  children?: React.ReactNode;
+  /** Additional style. */
+  style?: StyleProp<TextStyle>;
+}
 
-const labelVariants = cva(
-  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-)
+/**
+ * A minimal “Label” for RN. 
+ * In web, <label> ties to an input via htmlFor. 
+ * In RN, we do not have that. We just display text near an input.
+ */
+export const Label = forwardRef<Text, LabelProps>(({ style, children }, ref) => {
+  return (
+    <Text ref={ref} style={[styles.label, style]}>
+      {children}
+    </Text>
+  );
+});
 
-const Label = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
-    VariantProps<typeof labelVariants>
->(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root
-    ref={ref}
-    className={cn(labelVariants(), className)}
-    {...props}
-  />
-))
-Label.displayName = LabelPrimitive.Root.displayName
-
-export { Label }
+const styles = StyleSheet.create({
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+});

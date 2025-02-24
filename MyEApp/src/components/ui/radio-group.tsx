@@ -1,42 +1,80 @@
-import * as React from "react"
-import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
-import { Circle } from "lucide-react"
+// radio-group.tsx
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface RadioOption {
+  label: string;
+  value: string;
+}
 
-const RadioGroup = React.forwardRef<
-  React.ElementRef<typeof RadioGroupPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
->(({ className, ...props }, ref) => {
+interface RadioGroupProps {
+  /** The list of options to render. */
+  options: RadioOption[];
+  /** The selected value. */
+  value?: string;
+  /** Called when user selects an option. */
+  onValueChange?: (val: string) => void;
+  /** Additional style for the container. */
+  style?: StyleProp<ViewStyle>;
+}
+
+/**
+ * A minimal “RadioGroup” in React Native. 
+ * Renders a vertical list of radio options.
+ */
+export function RadioGroup({
+  options,
+  value,
+  onValueChange,
+  style,
+}: RadioGroupProps) {
   return (
-    <RadioGroupPrimitive.Root
-      className={cn("grid gap-2", className)}
-      {...props}
-      ref={ref}
-    />
-  )
-})
-RadioGroup.displayName = RadioGroupPrimitive.Root.displayName
+    <View style={[styles.container, style]}>
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <TouchableOpacity
+            key={option.value}
+            style={styles.option}
+            onPress={() => onValueChange?.(option.value)}
+          >
+            <View style={[styles.circle, selected && styles.circleSelected]} />
+            <Text style={styles.label}>{option.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
 
-const RadioGroupItem = React.forwardRef<
-  React.ElementRef<typeof RadioGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
->(({ className, ...props }, ref) => {
-  return (
-    <RadioGroupPrimitive.Item
-      ref={ref}
-      className={cn(
-        "aspect-square h-4 w-4 rounded-full border border-primary text-primary ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}
-    >
-      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-        <Circle className="h-2.5 w-2.5 fill-current text-current" />
-      </RadioGroupPrimitive.Indicator>
-    </RadioGroupPrimitive.Item>
-  )
-})
-RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName
-
-export { RadioGroup, RadioGroupItem }
+const styles = StyleSheet.create({
+  container: {
+    // default vertical layout
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#007bff',
+    marginRight: 8,
+  },
+  circleSelected: {
+    backgroundColor: '#007bff',
+  },
+  label: {
+    fontSize: 14,
+  },
+});

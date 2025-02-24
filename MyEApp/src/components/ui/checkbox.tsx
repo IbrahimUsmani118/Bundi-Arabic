@@ -1,28 +1,71 @@
-import * as React from "react"
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-import { Check } from "lucide-react"
+// checkbox.tsx
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface CheckboxProps {
+  /** Whether the checkbox is checked. */
+  value: boolean;
+  /** Called when the user toggles the checkbox. */
+  onValueChange?: (newValue: boolean) => void;
+  /** Optional label next to the checkbox. */
+  label?: string;
+  /** If true, user cannot toggle the checkbox. */
+  disabled?: boolean;
+}
 
-const Checkbox = React.forwardRef<
-  React.ElementRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <CheckboxPrimitive.Root
-    ref={ref}
-    className={cn(
-      "peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
-      className
-    )}
-    {...props}
-  >
-    <CheckboxPrimitive.Indicator
-      className={cn("flex items-center justify-center text-current")}
+/**
+ * A basic Checkbox for React Native using local state toggles.
+ * Replaces Radix UI's @radix-ui/react-checkbox approach.
+ */
+export function Checkbox({ value, onValueChange, label, disabled }: CheckboxProps) {
+  const handlePress = () => {
+    if (!disabled && onValueChange) {
+      onValueChange(!value);
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={[styles.container, disabled && styles.disabled]}
+      onPress={handlePress}
+      disabled={disabled}
+      activeOpacity={0.8}
     >
-      <Check className="h-4 w-4" />
-    </CheckboxPrimitive.Indicator>
-  </CheckboxPrimitive.Root>
-))
-Checkbox.displayName = CheckboxPrimitive.Root.displayName
+      <View style={[styles.box, value && styles.checked]}>
+        {value && <Text style={styles.checkMark}>✓</Text>}
+      </View>
+      {label ? <Text style={styles.label}>{label}</Text> : null}
+    </TouchableOpacity>
+  );
+}
 
-export { Checkbox }
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  box: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#007bff',
+    borderRadius: 3,
+    marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checked: {
+    backgroundColor: '#007bff',
+  },
+  checkMark: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  label: {
+    fontSize: 14,
+  },
+});

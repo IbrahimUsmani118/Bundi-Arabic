@@ -1,22 +1,41 @@
-import * as React from "react"
+// input.tsx
+import React, { forwardRef } from 'react';
+import {
+  TextInput,
+  StyleSheet,
+  StyleProp,
+  TextInputProps,
+  TextStyle,
+} from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface InputProps extends TextInputProps {
+  /** Additional style for the TextInput. */
+  style?: StyleProp<TextStyle>;
+}
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
+/**
+ * A basic text input for React Native. 
+ * Replaces the web <input> with a <TextInput>.
+ */
+export const Input = forwardRef<TextInput, InputProps>(
+  ({ style, ...props }, ref) => {
     return (
-      <input
-        type={type}
-        className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className
-        )}
+      <TextInput
         ref={ref}
+        style={[styles.input, style]}
         {...props}
       />
-    )
+    );
   }
-)
-Input.displayName = "Input"
+);
 
-export { Input }
+const styles = StyleSheet.create({
+  input: {
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    fontSize: 16,
+  },
+});

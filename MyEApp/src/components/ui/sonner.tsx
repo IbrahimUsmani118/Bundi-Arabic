@@ -1,29 +1,47 @@
-import { useTheme } from "next-themes"
-import { Toaster as Sonner } from "sonner"
+// sonner.tsx
+import React from 'react';
+import Toast, { ToastConfig, BaseToast } from 'react-native-toast-message';
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+/**
+ * Minimal “ToastProvider” for React Native using react-native-toast-message.
+ * 
+ * Usage:
+ *   <ToastProvider>
+ *     <App />
+ *   </ToastProvider>
+ */
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  // Optionally define custom toast config:
+  const toastConfig: ToastConfig = {
+    // Example override for the "info" type
+    info: (props) => (
+      <BaseToast
+        {...props}
+        style={{ borderLeftColor: '#007bff' }}
+        text1Style={{ fontSize: 15, fontWeight: '400' }}
+      />
+    ),
+  };
 
   return (
-    <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
-      toastOptions={{
-        classNames: {
-          toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton:
-            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton:
-            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-        },
-      }}
-      {...props}
-    />
-  )
+    <>
+      {children}
+      <Toast config={toastConfig} />
+    </>
+  );
 }
 
-export { Toaster }
+/**
+ * Helper to show a toast:
+ * 
+ * import { showToast } from './sonner';
+ * ...
+ * showToast('Hello from RN toast!');
+ */
+export function showToast(message: string, type: 'info' | 'success' | 'error' = 'info') {
+  Toast.show({
+    type,
+    text1: message,
+  });
+}

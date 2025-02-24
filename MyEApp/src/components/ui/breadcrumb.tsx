@@ -1,115 +1,108 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { ChevronRight, MoreHorizontal } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 
-const Breadcrumb = React.forwardRef<
-  HTMLElement,
-  React.ComponentPropsWithoutRef<"nav"> & {
-    separator?: React.ReactNode
-  }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />)
-Breadcrumb.displayName = "Breadcrumb"
-
-const BreadcrumbList = React.forwardRef<
-  HTMLOListElement,
-  React.ComponentPropsWithoutRef<"ol">
->(({ className, ...props }, ref) => (
-  <ol
-    ref={ref}
-    className={cn(
-      "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
-      className
-    )}
-    {...props}
-  />
-))
-BreadcrumbList.displayName = "BreadcrumbList"
-
-const BreadcrumbItem = React.forwardRef<
-  HTMLLIElement,
-  React.ComponentPropsWithoutRef<"li">
->(({ className, ...props }, ref) => (
-  <li
-    ref={ref}
-    className={cn("inline-flex items-center gap-1.5", className)}
-    {...props}
-  />
-))
-BreadcrumbItem.displayName = "BreadcrumbItem"
-
-const BreadcrumbLink = React.forwardRef<
-  HTMLAnchorElement,
-  React.ComponentPropsWithoutRef<"a"> & {
-    asChild?: boolean
-  }
->(({ asChild, className, ...props }, ref) => {
-  const Comp = asChild ? Slot : "a"
-
-  return (
-    <Comp
-      ref={ref}
-      className={cn("transition-colors hover:text-foreground", className)}
-      {...props}
-    />
-  )
-})
-BreadcrumbLink.displayName = "BreadcrumbLink"
-
-const BreadcrumbPage = React.forwardRef<
-  HTMLSpanElement,
-  React.ComponentPropsWithoutRef<"span">
->(({ className, ...props }, ref) => (
-  <span
-    ref={ref}
-    role="link"
-    aria-disabled="true"
-    aria-current="page"
-    className={cn("font-normal text-foreground", className)}
-    {...props}
-  />
-))
-BreadcrumbPage.displayName = "BreadcrumbPage"
-
-const BreadcrumbSeparator = ({
-  children,
-  className,
-  ...props
-}: React.ComponentProps<"li">) => (
-  <li
-    role="presentation"
-    aria-hidden="true"
-    className={cn("[&>svg]:size-3.5", className)}
-    {...props}
-  >
-    {children ?? <ChevronRight />}
-  </li>
-)
-BreadcrumbSeparator.displayName = "BreadcrumbSeparator"
-
-const BreadcrumbEllipsis = ({
-  className,
-  ...props
-}: React.ComponentProps<"span">) => (
-  <span
-    role="presentation"
-    aria-hidden="true"
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More</span>
-  </span>
-)
-BreadcrumbEllipsis.displayName = "BreadcrumbElipssis"
-
-export {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
+/**
+ * The main Breadcrumb container. Typically just a row or column of items.
+ */
+export function Breadcrumb({ children }: { children?: React.ReactNode }) {
+  return <View style={styles.breadcrumbContainer}>{children}</View>;
 }
+
+/**
+ * A list wrapper for breadcrumb items. In RN, you can just place items directly,
+ * but we'll mimic your "BreadcrumbList" concept with a <View>.
+ */
+export function BreadcrumbList({ children }: { children?: React.ReactNode }) {
+  return <View style={styles.list}>{children}</View>;
+}
+
+/**
+ * A single breadcrumb item. Usually some text or a link.
+ */
+export function BreadcrumbItem({ children }: { children?: React.ReactNode }) {
+  return <View style={styles.item}>{children}</View>;
+}
+
+/**
+ * A link within the breadcrumb, typically a <TouchableOpacity> or text.
+ */
+export function BreadcrumbLink({
+  onPress,
+  children,
+}: {
+  onPress?: () => void;
+  children?: React.ReactNode;
+}) {
+  return (
+    <TouchableOpacity onPress={onPress}>
+      <Text style={styles.link}>{children}</Text>
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * A text-only "current page" item (not clickable).
+ */
+export function BreadcrumbPage({ children }: { children?: React.ReactNode }) {
+  return <Text style={styles.current}>{children}</Text>;
+}
+
+/**
+ * A separator between breadcrumb items. Could be a text or an icon.
+ */
+export function BreadcrumbSeparator({
+  separator = '>',
+}: {
+  separator?: string;
+}) {
+  return <Text style={styles.separator}>{separator}</Text>;
+}
+
+/**
+ * An ellipsis to indicate "More" items. For advanced usage, you could do a modal or menu.
+ */
+export function BreadcrumbEllipsis() {
+  return (
+    <View style={styles.ellipsis}>
+      <Text style={styles.ellipsisText}>...</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  breadcrumbContainer: {
+    // Container for the entire breadcrumb
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  list: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  link: {
+    color: '#007AFF',
+    paddingHorizontal: 4,
+  },
+  current: {
+    fontWeight: 'bold',
+    paddingHorizontal: 4,
+  },
+  separator: {
+    paddingHorizontal: 2,
+    color: '#999',
+  },
+  ellipsis: {
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ellipsisText: {
+    fontSize: 16,
+  },
+});

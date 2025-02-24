@@ -1,27 +1,67 @@
-import * as React from "react"
-import * as HoverCardPrimitive from "@radix-ui/react-hover-card"
+// hover-card.tsx
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  Pressable,
+} from 'react-native';
 
-import { cn } from "@/lib/utils"
+interface HoverCardProps {
+  /** Content of the "card" that appears. */
+  content: React.ReactNode;
+  /** The trigger node or text. */
+  children: React.ReactNode;
+}
 
-const HoverCard = HoverCardPrimitive.Root
+/**
+ * A minimal "hover card" in RN, replaced with a press-based tooltip approach.
+ */
+export function HoverCard({ content, children }: HoverCardProps) {
+  const [visible, setVisible] = useState(false);
 
-const HoverCardTrigger = HoverCardPrimitive.Trigger
+  const openCard = () => setVisible(true);
+  const closeCard = () => setVisible(false);
 
-const HoverCardContent = React.forwardRef<
-  React.ElementRef<typeof HoverCardPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <HoverCardPrimitive.Content
-    ref={ref}
-    align={align}
-    sideOffset={sideOffset}
-    className={cn(
-      "z-50 w-64 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-      className
-    )}
-    {...props}
-  />
-))
-HoverCardContent.displayName = HoverCardPrimitive.Content.displayName
+  return (
+    <View>
+      <Pressable onPressIn={openCard} onPressOut={closeCard}>
+        {typeof children === 'string' ? <Text>{children}</Text> : children}
+      </Pressable>
 
-export { HoverCard, HoverCardTrigger, HoverCardContent }
+      <Modal
+        transparent
+        visible={visible}
+        onRequestClose={closeCard}
+        animationType="fade"
+      >
+        <Pressable style={styles.overlay} onPress={closeCard}>
+          <View style={styles.card}>
+            {typeof content === 'string' ? <Text>{content}</Text> : content}
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    width: 200,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+});

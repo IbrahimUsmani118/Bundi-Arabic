@@ -1,12 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { Calendar, Clock, MapPin, Tag, Users } from "lucide-react";
+import React from 'react';
+import { View, Text, Image, StyleSheet, ScrollView, Alert } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../utils/supabase'; // adjust the import path as needed
+import { Feather } from '@expo/vector-icons';
 
 const FeaturedEvents = () => {
-  const { toast } = useToast();
-
   const { data: events } = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
@@ -14,14 +12,10 @@ const FeaturedEvents = () => {
         .from('events')
         .select('*')
         .order('date', { ascending: true })
-        .limit(10);  // Increased to show 10 events
-      
+        .limit(10); // Increased to show 10 events
+
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Error fetching events",
-          description: error.message,
-        });
+        Alert.alert("Error fetching events", error.message);
         throw error;
       }
       return data;
@@ -47,58 +41,125 @@ const FeaturedEvents = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col space-y-6 max-w-lg mx-auto">
-        {events?.map((event) => (
-          <Card key={event.id} className="w-full overflow-hidden bg-white">
-            <div className="relative h-72">
-              <img 
-                src={event.image_url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3'} 
-                alt={event.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-4 right-4 bg-black/70 px-4 py-2 rounded-full">
-                <span className="text-white font-semibold text-lg">${event.price}</span>
-              </div>
-            </div>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">{event.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="flex items-center space-x-3 text-gray-600">
-                <Calendar className="w-5 h-5" />
-                <span className="text-base">{formatDate(event.date)}</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-600">
-                <Clock className="w-5 h-5" />
-                <span className="text-base">{formatTime(event.date)}</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-600">
-                <MapPin className="w-5 h-5" />
-                <span className="text-base">{event.location}</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-600">
-                <Tag className="w-5 h-5" />
-                <span className="text-base capitalize">{event.type}</span>
-              </div>
-              <div className="flex items-center justify-between pt-3 border-t">
-                <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-gray-600" />
-                  <span className="text-base text-gray-600">Limited spots</span>
-                </div>
-                {event.rating && (
-                  <div className="flex items-center">
-                    <span className="text-yellow-400 text-xl">★</span>
-                    <span className="ml-2 text-gray-600 text-base">{event.rating}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+    <ScrollView style={styles.container}>
+      {events?.map((event: any) => (
+        <View key={event.id} style={styles.card}>
+          <View style={styles.imageContainer}>
+            <Image 
+              source={{ uri: event.image_url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3' }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+            <View style={styles.priceTag}>
+              <Text style={styles.priceText}>${event.price}</Text>
+            </View>
+          </View>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>{event.title}</Text>
+          </View>
+          <View style={styles.cardContent}>
+            <View style={styles.row}>
+              <Feather name="calendar" size={20} color="#4B5563" />
+              <Text style={styles.rowText}>{formatDate(event.date)}</Text>
+            </View>
+            <View style={styles.row}>
+              <Feather name="clock" size={20} color="#4B5563" />
+              <Text style={styles.rowText}>{formatTime(event.date)}</Text>
+            </View>
+            <View style={styles.row}>
+              <Feather name="map-pin" size={20} color="#4B5563" />
+              <Text style={styles.rowText}>{event.location}</Text>
+            </View>
+            <View style={styles.row}>
+              <Feather name="tag" size={20} color="#4B5563" />
+              <Text style={styles.rowText}>{event.type}</Text>
+            </View>
+            <View style={[styles.row, styles.rowBetween]}>
+              <View style={styles.row}>
+                <Feather name="users" size={20} color="#4B5563" />
+                <Text style={styles.rowText}>Limited spots</Text>
+              </View>
+              {event.rating && (
+                <View style={styles.row}>
+                  <Feather name="star" size={20} color="#F59E0B" />
+                  <Text style={styles.rowText}>{event.rating}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      ))}
+    </ScrollView>
   );
 };
 
 export default FeaturedEvents;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#F3F4F6',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 16,
+    overflow: 'hidden',
+    // iOS shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // Android elevation
+    elevation: 3,
+  },
+  imageContainer: {
+    height: 200,
+    position: 'relative',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  priceTag: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 50,
+  },
+  priceText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 18,
+  },
+  cardHeader: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  cardContent: {
+    padding: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  rowText: {
+    marginLeft: 8,
+    color: '#4B5563',
+    fontSize: 16,
+  },
+  rowBetween: {
+    justifyContent: 'space-between',
+  },
+});

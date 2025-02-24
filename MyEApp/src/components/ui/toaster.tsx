@@ -1,33 +1,54 @@
-import { useToast } from "@/hooks/use-toast"
-import {
-  Toast,
-  ToastClose,
-  ToastDescription,
-  ToastProvider,
-  ToastTitle,
-  ToastViewport,
-} from "@/components/ui/toast"
+// components/Toaster.tsx
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { ToastProvider, useToast, Toast } from "./toast"; // Ensure casing matches your filename
 
 export function Toaster() {
-  const { toasts } = useToast()
-
+  // In this implementation, the ToastViewport is rendered inside ToastProvider.
+  // If you need to display custom content for each toast, you can modify the mapping.
+  const { toasts } = useToast();
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
-        return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
+      <View style={styles.toasterContainer}>
+        {toasts.map(({ id, title, description, ...props }) => (
+          <Toast
+            key={id}
+            id={id} // pass the id explicitly
+            title={title}
+            description={description}
+            {...props}
+            onClose={() => {}}
+          >
+            <View style={styles.toastContent}>
+              {title && <Text style={styles.toastTitle}>{title}</Text>}
               {description && (
-                <ToastDescription>{description}</ToastDescription>
+                <Text style={styles.toastDescription}>{description}</Text>
               )}
-            </div>
-            {action}
-            <ToastClose />
+            </View>
           </Toast>
-        )
-      })}
-      <ToastViewport />
+        ))}
+      </View>
     </ToastProvider>
-  )
+  );
 }
+
+const styles = StyleSheet.create({
+  toasterContainer: {
+    // The ToastProvider already renders the viewport,
+    // so you can add additional styling here if desired.
+  },
+  toastContent: {
+    // Mimic a grid gap with vertical spacing if needed.
+  },
+  toastTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  toastDescription: {
+    fontSize: 14,
+    color: "#fff",
+  },
+});
+
+export default Toaster;
