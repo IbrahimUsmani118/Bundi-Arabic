@@ -19,6 +19,7 @@
     "@tanstack/react-query": "^5.66.9",
     "expo": "~52.0.37",
     "expo-status-bar": "~2.0.1",
+    "hermes-parser": "^0.26.0",
     "lucide-react-native": "^0.475.0",
     "react": "18.3.1",
     "react-native": "0.76.7",

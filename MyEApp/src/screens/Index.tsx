@@ -1,7 +1,6 @@
-// Index.tsx (React Native)
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../utils/supabase'; // Adjust path
+import { supabase } from '../utils/supabase';
 import {
   View,
   Text,
@@ -11,19 +10,38 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-/**
- * A simplified "Home" screen that:
- * - Fetches "events" & "beauty_services" from Supabase
- * - Demonstrates how you might handle city/year selection
- * - Removes references to custom PageSlider, Link, Tailwind, etc.
- */
+// Define your stack parameter list
+type RootStackParamList = {
+  Home: undefined;
+  Travel: undefined;
+  Plane: undefined;
+  Hotels: undefined;
+  Beauty: undefined;
+  Events: undefined;
+  NotFound: undefined;
+};
+
+// Type your navigation prop
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+// Define a type for your navigation items
+type NavItem = {
+  name: keyof RootStackParamList; // ensures name is one of the valid routes
+  color: string;
+  dataCount?: number;
+};
+
 const Home: React.FC = () => {
+  const navigation = useNavigation<NavigationProp>();
+
   const [selectedCity, setSelectedCity] = useState('Miami');
   const [selectedYear, setSelectedYear] = useState<number>(2024);
-  const [selectedLetter, setSelectedLetter] = useState(0); // Example slider logic
+  const [selectedLetter, setSelectedLetter] = useState(0);
 
-  // Example data fetch: events
+  // Query events data
   const {
     data: events,
     isLoading: eventsLoading,
@@ -41,7 +59,7 @@ const Home: React.FC = () => {
     },
   });
 
-  // Example data fetch: beauty services
+  // Query beauty services data
   const {
     data: beautyServices,
     isLoading: beautyLoading,
@@ -59,24 +77,25 @@ const Home: React.FC = () => {
     },
   });
 
-  // For demonstration: items to display in a list
-  const navigationItems = [
+  // Navigation items – names must match the keys in RootStackParamList
+  const navigationItems: NavItem[] = [
     { name: 'Beauty', color: 'pink', dataCount: beautyServices?.length ?? 0 },
     { name: 'Events', color: 'yellow', dataCount: events?.length ?? 0 },
-    { name: 'Flights', color: 'blue' },
+    { name: 'Plane', color: 'blue' },
     { name: 'Hotels', color: 'indigo' },
-    { name: 'Rentals', color: 'green' },
+    { name: 'Travel', color: 'green' },
   ];
 
-  // Example letters for "slider" logic
+  // Create an array of letters from the navigation item names
   const letters = useMemo(() => {
     const unique = [...new Set(navigationItems.map((item) => item.name[0]))];
     return unique.sort();
   }, [navigationItems]);
 
-  // Sort items based on selectedLetter
+  // Sort items based on selected letter (example slider logic)
   const sortedItems = useMemo(() => {
-    const selectedChar = letters[Math.floor((selectedLetter / 100) * letters.length)] || '';
+    const selectedChar =
+      letters[Math.floor((selectedLetter / 100) * letters.length)] || '';
     return [...navigationItems].sort((a, b) => {
       const aStarts = a.name.startsWith(selectedChar);
       const bStarts = b.name.startsWith(selectedChar);
@@ -86,7 +105,7 @@ const Home: React.FC = () => {
     });
   }, [selectedLetter, letters, navigationItems]);
 
-  // Handlers
+  // Handlers for demonstration purposes
   const handleCityChange = (city: string) => {
     setSelectedCity(city);
     Alert.alert('Location Updated', `Showing content for ${city}`);
@@ -97,7 +116,6 @@ const Home: React.FC = () => {
     Alert.alert('Time Period Updated', `Showing content for ${year}`);
   };
 
-  // If loading or error
   if (eventsLoading || beautyLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -109,8 +127,7 @@ const Home: React.FC = () => {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>
-          Error fetching data:
-          {String(eventsError || beautyError)}
+          Error fetching data: {String(eventsError || beautyError)}
         </Text>
       </View>
     );
@@ -118,38 +135,49 @@ const Home: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* City & Year Display */}
+      {/* Header displaying city and year */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{selectedCity}</Text>
         <Text style={styles.headerSubtitle}>{selectedYear}</Text>
       </View>
 
-      {/* Example "Letter Slider" (just a row of letters) */}
+      {/* Letter slider (demonstration) */}
       <View style={styles.lettersRow}>
         {letters.map((letter, index) => (
           <TouchableOpacity
             key={letter}
-            onPress={() => setSelectedLetter((index / (letters.length - 1)) * 100)}
+            onPress={() =>
+              setSelectedLetter((index / (letters.length - 1)) * 100)
+            }
           >
             <Text style={styles.letter}>{letter}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Sorted Items List */}
+      {/* Navigation items list */}
       <FlatList
         data={sortedItems}
         keyExtractor={(item) => item.name}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
-            <View style={[styles.iconContainer, { backgroundColor: getColor(item.color) }]}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate(item.name)}
+          >
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: getColor(item.color) },
+              ]}
+            >
               <Text style={styles.iconText}>{item.name[0]}</Text>
             </View>
             <View style={styles.cardTextContainer}>
               <Text style={styles.cardTitle}>{item.name}</Text>
-              {/* Show data count if available */}
               {item.dataCount !== undefined && (
-                <Text style={styles.cardSubtitle}>{item.dataCount} records found</Text>
+                <Text style={styles.cardSubtitle}>
+                  {item.dataCount} records found
+                </Text>
               )}
             </View>
           </TouchableOpacity>
@@ -160,30 +188,28 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
-
-// Helper to convert color name to an actual color
+// Helper function to map a color name to its actual color
 function getColor(colorName: string) {
   switch (colorName) {
     case 'pink':
-      return '#FBCFE8'; // tailwind pink-200
+      return '#FBCFE8';
     case 'yellow':
-      return '#FEF9C3'; // tailwind yellow-200
+      return '#FEF9C3';
     case 'blue':
-      return '#BFDBFE'; // tailwind blue-200
+      return '#BFDBFE';
     case 'indigo':
-      return '#C7D2FE'; // tailwind indigo-200
+      return '#C7D2FE';
     case 'green':
-      return '#BBF7D0'; // tailwind green-200
+      return '#BBF7D0';
     default:
-      return '#E5E7EB'; // gray-200 fallback
+      return '#E5E7EB';
   }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fafafa', // tailwind: bg-gray-50
+    backgroundColor: '#fafafa',
     padding: 16,
   },
   loadingContainer: {
@@ -207,10 +233,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937', // text-gray-800
+    color: '#1F2937',
   },
   headerSubtitle: {
-    color: '#4B5563', // text-gray-600
+    color: '#4B5563',
     fontSize: 16,
     marginTop: 4,
   },
@@ -255,11 +281,13 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937', // text-gray-800
+    color: '#1F2937',
     marginBottom: 2,
   },
   cardSubtitle: {
     fontSize: 14,
-    color: '#4B5563', // text-gray-600
+    color: '#4B5563',
   },
 });
+
+export default Home;
