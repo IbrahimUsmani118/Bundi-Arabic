@@ -1,5 +1,3 @@
-// Events.tsx (React Native)
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../utils/supabase'; // Adjust path
@@ -13,21 +11,33 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  SafeAreaView,
+  Modal
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import PageSlider from '../components/PageSlider';
 
-/**
- * A simplified "Events" screen that:
- * - Fetches "events" from Supabase
- * - Filters by city and search text
- * - Displays a list of events
- * - Removes references to custom Card, Input, Button, and PageSlider
- */
-const Events: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCity, setSelectedCity] = useState('Miami');
+// Define types
+interface EventData {
+  id: number;
+  title: string;
+  date: string;
+  location: string;
+  price: number;
+  type: string;
+  rating?: number;
+  image_url?: string;
+}
+
+const EventsScreen: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('Miami');
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [showLeftDrawer, setShowLeftDrawer] = useState<boolean>(false);
+  const [showRightDrawer, setShowRightDrawer] = useState<boolean>(false);
 
   // Query: fetch events
-  const { data: events, isLoading, error } = useQuery({
+  const { data: events, isLoading, error } = useQuery<EventData[], Error>({
     queryKey: ['events', selectedCity],
     queryFn: async () => {
       let query = supabase
@@ -39,7 +49,7 @@ const Events: React.FC = () => {
       }
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as EventData[];
     },
   });
 
@@ -49,9 +59,62 @@ const Events: React.FC = () => {
   }, [selectedCity]);
 
   // Filter events by search query
-  const filteredEvents = events?.filter((evt: any) =>
+  const filteredEvents = events?.filter((evt) =>
     evt.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Sample data when no events are found
+  const sampleEvents = [
+    {
+      id: 1,
+      title: "Summer Music Festival",
+      date: "2025-07-15T18:00:00",
+      location: "Miami Beach Amphitheater",
+      price: 85,
+      type: "concert",
+      rating: 4.8,
+      image_url: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3",
+      city: "Miami"
+    },
+    {
+      id: 2,
+      title: "Art Basel Exhibition",
+      date: "2025-06-05T10:00:00",
+      location: "Miami Convention Center",
+      price: 45,
+      type: "exhibition",
+      rating: 4.5,
+      image_url: "https://images.unsplash.com/photo-1531058020387-3be344556be6",
+      city: "Miami"
+    },
+    {
+      id: 3,
+      title: "Broadway Musical - Hamilton",
+      date: "2025-05-22T19:30:00",
+      location: "Richard Rodgers Theatre",
+      price: 120,
+      type: "theater",
+      rating: 4.9,
+      image_url: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf",
+      city: "New York"
+    },
+    {
+      id: 4,
+      title: "Central Park Summer Concert",
+      date: "2025-08-10T17:00:00",
+      location: "Central Park Great Lawn",
+      price: 30,
+      type: "concert",
+      rating: 4.6,
+      image_url: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec",
+      city: "New York"
+    }
+  ];
+
+  // Display events - use sample data if no events found
+  const displayEvents = (filteredEvents && filteredEvents.length > 0)
+    ? filteredEvents
+    : (error ? [] : sampleEvents.filter(event => event.city === selectedCity));
 
   // Basic placeholder icon logic
   function getEventIcon(type: string) {
@@ -67,14 +130,14 @@ const Events: React.FC = () => {
   }
 
   // Instead of a toast, we'll use Alert
-  const handlePurchase = (evt: any) => {
+  const handlePurchase = (evt: EventData) => {
     Alert.alert(
       'Ticket Reserved!',
       `You've reserved a ticket for ${evt.title}. Total: $${evt.price}`
     );
   };
 
-  const renderEventItem = ({ item }: { item: any }) => (
+  const renderEventItem = ({ item }: { item: EventData }) => (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
         <Image
@@ -140,50 +203,255 @@ const Events: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>
-          Error fetching events: {String(error)}
-        </Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      {/* Search Bar */}
-      <View style={styles.searchRow}>
-        <Text style={styles.searchIcon}>🔍</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search events..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+    <SafeAreaView style={styles.container}>
+      {/* MOBILE NAVBAR */}
+      <View style={styles.navbar}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => setShowLeftDrawer(true)}
+        >
+          <Text style={styles.navButtonText}>Cities</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.navTitleContainer}>
+          <Text style={styles.navTitle}></Text>
+          <View style={styles.locationContainer}>
+            <Feather name="map-pin" size={12} color="#2196F3" />
+            <Text style={styles.locationText}>{selectedCity}</Text>
+          </View>
+        </View>
+        
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => setShowRightDrawer(true)}
+        >
+          <Text style={styles.navButtonText}>Years</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* For City selection, you could add a <Picker> or other UI.
-          We'll skip that for now and just log 'selectedCity'. */}
+      <View style={styles.mainContent}>
+        {/* Horizontal PageSlider for navigation */}
+        <View style={styles.horizontalSliderContainer}>
+          <PageSlider orientation="horizontal" />
+        </View>
+        
+        {/* Search Bar */}
+        <View style={styles.searchRow}>
+          <Feather name="search" size={20} color="#999" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search events..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
 
-      {/* List of events */}
-      <FlatList
-        data={filteredEvents}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderEventItem}
-        contentContainerStyle={styles.listContent}
-      />
-    </View>
+        {/* List of events */}
+        {displayEvents.length > 0 ? (
+          <FlatList
+            data={displayEvents}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderEventItem}
+            contentContainerStyle={styles.listContent}
+          />
+        ) : (
+          <View style={styles.noResultsContainer}>
+            <Text style={styles.noResultsText}>
+              No events found for "{selectedCity}"
+            </Text>
+          </View>
+        )}
+      </View>
+      
+      {/* MOBILE LEFT DRAWER (Cities) */}
+      <Modal
+        visible={showLeftDrawer}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowLeftDrawer(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.leftDrawer}>
+            <View style={styles.drawerHeader}>
+              <Text style={styles.drawerTitle}>Select City</Text>
+              <TouchableOpacity
+                onPress={() => setShowLeftDrawer(false)}
+                style={styles.closeButton}
+              >
+                <Feather name="x" size={20} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.verticalSliderWrapper}>
+              <View style={styles.cityLabels}>
+                {[
+                  { name: "Miami", value: 0 },
+                  { name: "New York", value: 100 },
+                ].map((city) => (
+                  <TouchableOpacity
+                    key={city.name}
+                    onPress={() => {
+                      setSelectedCity(city.name);
+                      // Don't automatically close the drawer
+                    }}
+                  >
+                    <Text style={[
+                      styles.cityLabel,
+                      selectedCity === city.name && styles.selectedCityLabel
+                    ]}>
+                      {city.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <View style={styles.sliderContainer}>
+                <PageSlider
+                  orientation="vertical"
+                  type="cities"
+                  initialCity={selectedCity}
+                  onCityChange={(city) => {
+                    setSelectedCity(city);
+                    // Don't close the drawer automatically
+                  }}
+                  showCityContent={false}
+                  style={styles.verticalSlider}
+                />
+              </View>
+            </View>
+
+            {/* Done button for closing drawer */}
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={() => setShowLeftDrawer(false)}
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity
+            style={styles.modalBackground}
+            onPress={() => setShowLeftDrawer(false)}
+          ></TouchableOpacity>
+        </View>
+      </Modal>
+      
+      {/* MOBILE RIGHT DRAWER (Years) */}
+      <Modal
+        visible={showRightDrawer}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowRightDrawer(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackground}
+            onPress={() => setShowRightDrawer(false)}
+          ></TouchableOpacity>
+          
+          <View style={styles.rightDrawer}>
+            <View style={styles.drawerHeader}>
+              <TouchableOpacity
+                onPress={() => setShowRightDrawer(false)}
+                style={styles.closeButton}
+              >
+                <Feather name="x" size={20} color="#333" />
+              </TouchableOpacity>
+              <Text style={styles.drawerTitle}>Select Year</Text>
+            </View>
+            
+            <View style={styles.verticalSliderWrapper}>
+              <View style={styles.yearLabels}>
+                {[
+                  { name: "2020", value: 0 },
+                  { name: "2021", value: 20 },
+                  { name: "2022", value: 40 },
+                  { name: "2023", value: 60 },
+                  { name: "2024", value: 80 },
+                  { name: "2025", value: 100 }
+                ].map((year) => (
+                  <TouchableOpacity
+                    key={year.name}
+                    onPress={() => {
+                      setSelectedYear(parseInt(year.name));
+                      // Don't automatically close
+                    }}
+                  >
+                    <Text style={[
+                      styles.yearLabel,
+                      selectedYear === parseInt(year.name) && styles.selectedYearLabel
+                    ]}>
+                      {year.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <View style={styles.sliderContainer}>
+                <PageSlider
+                  orientation="vertical"
+                  type="years"
+                  onYearChange={(year) => {
+                    setSelectedYear(year);
+                    // Don't close drawer on selection
+                  }}
+                  showYearContent={false}
+                  style={styles.verticalSlider}
+                />
+              </View>
+            </View>
+            
+            {/* Done button for closing drawer */}
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={() => setShowRightDrawer(false)}
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
-
-export default Events;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb', // tailwind: bg-gray-50
-    padding: 16,
+    backgroundColor: '#f9fafb',
+  },
+  navbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'white',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  navButton: {
+    backgroundColor: '#E5E5E5',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+  },
+  navButtonText: {
+    fontSize: 14,
+  },
+  navTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  mainContent: {
+    flex: 1,
+  },
+  horizontalSliderContainer: {
+    width: '100%',
   },
   loadingContainer: {
     flex: 1,
@@ -205,12 +473,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     paddingHorizontal: 12,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginVertical: 16,
     elevation: 2,
   },
   searchIcon: {
-    fontSize: 18,
-    color: '#aaa',
     marginRight: 8,
   },
   searchInput: {
@@ -218,6 +485,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   listContent: {
+    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   card: {
@@ -294,4 +562,118 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  noResultsContainer: {
+    flex: 1,
+    alignItems: 'center',
+    marginTop: 40,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: '#444',
+  },
+  modalOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  leftDrawer: {
+    width: 250,
+    backgroundColor: 'white',
+    height: '100%',
+  },
+  rightDrawer: {
+    width: 250,
+    backgroundColor: 'white',
+    height: '100%',
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  drawerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  // New styles for vertical sliders - removed the container style
+  verticalSliderWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    flex: 1,
+  },
+  cityLabels: {
+    height: 300,
+    marginRight: 20,
+    justifyContent: 'space-between',
+  },
+  cityLabel: {
+    fontSize: 16,
+    color: '#666',
+    paddingVertical: 10,
+  },
+  selectedCityLabel: {
+    fontWeight: 'bold',
+    color: '#2196F3',
+  },
+
+  navTitleContainer: {
+    alignItems: 'center',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  locationText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
+  },
+  yearLabels: {
+    height: 300,
+    marginRight: 20,
+    justifyContent: 'space-between',
+  },
+  yearLabel: {
+    fontSize: 16, 
+    color: '#666',
+    paddingVertical: 8,
+  },
+  selectedYearLabel: {
+    fontWeight: 'bold',
+    color: '#2196F3',
+  },
+  sliderContainer: {
+    height: 300,
+    width: 40,
+    marginLeft: 20,
+  },
+  verticalSlider: {
+    height: 300,
+  },
+  doneButton: {
+    backgroundColor: '#2196F3',
+    margin: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
+
+export default EventsScreen;
