@@ -36,7 +36,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type NavItem = {
   name: keyof RootStackParamList;
   color: string;
-  gradient: readonly [string, string]; // Fixed as tuple with exactly 2 colors
+  gradient: readonly [string, string]; // Tuple with exactly 2 colors
   icon: string;
   dataCount?: number;
   value: number; // For slider positioning
@@ -45,6 +45,7 @@ type NavItem = {
 const Home: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
 
+  // Use English as the default language; Arabic translations will be loaded via i18n configuration
   const [selectedCity, setSelectedCity] = useState('Miami');
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [sliderValue, setSliderValue] = useState(0);
@@ -107,60 +108,45 @@ const Home: React.FC = () => {
       name: 'Plane', 
       color: 'blue', 
       gradient: ['#84FAB0', '#8FD3F4'] as const,
-      icon: 'send', // Changed from 'plane' to 'send' which exists in Feather icons
+      icon: 'send', // Using a valid Feather icon key
       value: 66 
     },
     { 
       name: 'Hotels', 
       color: 'indigo', 
       gradient: ['#A18CD1', '#FBC2EB'] as const,
-      icon: 'home', // 'home' is valid in Feather icons set
+      icon: 'home', 
       value: 100 
     },
   ];
 
-  // Find closest navigation item based on slider value
+  // For this version, we assume translations for navigation items are handled externally.
+  // The displayed name will be exactly the key (e.g., "Beauty") and must be translated via your i18n setup.
+  const getTranslatedName = (name: string) => name; // Adjust if you later integrate i18n in this file
+
+  // Find the navigation item closest to the current slider value
   const getClosestItem = (value: number) => {
     return navigationItems.reduce((prev, current) => {
-      return (Math.abs(current.value - value) < Math.abs(prev.value - value))
+      return Math.abs(current.value - value) < Math.abs(prev.value - value)
         ? current
         : prev;
     });
   };
 
-  // Get current highlighted item based on slider position
-  const highlightedItem = useMemo(() => {
-    return getClosestItem(sliderValue);
-  }, [sliderValue]);
-
-  // Filtered items based on highlighted item
+  const highlightedItem = useMemo(() => getClosestItem(sliderValue), [sliderValue]);
   const filteredItems = useMemo(() => {
-    // Put the highlighted item first, then the rest
     return [
       highlightedItem,
       ...navigationItems.filter(item => item.name !== highlightedItem.name)
     ];
   }, [highlightedItem]);
 
-  // Handlers for city and year changes
-  const handleCityChange = (city: string) => {
-    setSelectedCity(city);
-    Alert.alert('Location Updated', `Showing content for ${city}`);
-  };
-
-  const handleYearChange = (year: number) => {
-    setSelectedYear(year);
-    Alert.alert('Time Period Updated', `Showing content for ${year}`);
-  };
-
-  // Handle slider value change
+  // Handle slider changes
   const handleSliderChange = (value: number) => {
     setSliderValue(value);
   };
 
-  // Handle slider value when released
   const handleSliderComplete = (value: number) => {
-    // Find the closest navigation item
     const closest = getClosestItem(value);
     setSliderValue(closest.value);
   };
@@ -194,7 +180,7 @@ const Home: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      {/* Header with app title instead of city/year */}
+      {/* Header with app title */}
       <LinearGradient
         colors={['#ffffff', '#f7f7f7'] as const}
         style={styles.headerContainer}
@@ -231,7 +217,7 @@ const Home: React.FC = () => {
                   highlightedItem.name === item.name && styles.sliderLabelActive
                 ]}
               >
-                {item.name}
+                {getTranslatedName(item.name)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -260,10 +246,6 @@ const Home: React.FC = () => {
             </LinearGradient>
             <View style={styles.cardTextContainer}>
               <Text style={styles.cardTitle}>{item.name}</Text>
-              {item.dataCount !== undefined && (
-                <Text style={styles.cardSubtitle}>
-                </Text>
-              )}
             </View>
             <View style={styles.arrowContainer}>
               <Feather name="chevron-right" size={24} color="#CCCCCC" />
@@ -369,10 +351,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#666',
   },
   arrowContainer: {
     paddingLeft: 8,

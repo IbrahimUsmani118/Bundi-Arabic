@@ -8,33 +8,29 @@ import {
   TextInput,
   FlatList,
   Modal,
-  ScrollView,
-  SafeAreaView
+  SafeAreaView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text as RNText } from 'react-native'; // Ensure Text is imported correctly
 import { Feather, AntDesign } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../utils/supabase'; // Adjust this path based on your project structure
-import PageSlider from '../components/PageSlider.tsx';
+import { supabase } from '../utils/supabase';
+import PageSlider from '../components/PageSlider';
 
-// Define cities and years data for the sliders
 const cities = [
-  { name: "Miami", value: 0 },
-  { name: "New York", value: 100 },
+  { name: 'Mumbai', value: 0 },
+  { name: 'New Delhi', value: 100 },
 ];
 
 const years = [
-  { name: "2020", value: 0 },
-  { name: "2021", value: 20 },
-  { name: "2022", value: 40 },
-  { name: "2023", value: 60 },
-  { name: "2024", value: 80 },
-  { name: "2025", value: 100 },
+  { name: '2020', value: 0 },
+  { name: '2021', value: 20 },
+  { name: '2022', value: 40 },
+  { name: '2023', value: 60 },
+  { name: '2024', value: 80 },
+  { name: '2025', value: 100 },
 ];
 
-// Define types for the data
 interface ServiceType {
   value: string;
   label: string;
@@ -59,16 +55,23 @@ interface ToastProps {
   onDismiss: () => void;
 }
 
-// Toast notification component
-const Toast: React.FC<ToastProps> = ({ visible, message, type, onDismiss }) => {
-  if (!visible) return null;
+type ToastState = {
+  visible: boolean;
+  message: string;
+  type: 'success' | 'error';
+};
 
+const Toast: React.FC<ToastProps> = ({ visible, message, type, onDismiss }) => {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onDismiss();
-    }, 3000);
-    return () => clearTimeout(timer);
+    if (visible) {
+      const timer = setTimeout(() => {
+        onDismiss();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
   }, [visible, onDismiss]);
+
+  if (!visible) return null;
 
   return (
     <View style={[styles.toast, type === 'error' ? styles.errorToast : styles.successToast]}>
@@ -80,27 +83,30 @@ const Toast: React.FC<ToastProps> = ({ visible, message, type, onDismiss }) => {
 const BeautyScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedCity, setSelectedCity] = useState<string>('Miami');
-  const [toast, setToast] = useState<{
-    visible: boolean;
-    message: string;
-    type: 'success' | 'error';
-  }>({ visible: false, message: '', type: 'success' });
+  const [selectedCity, setSelectedCity] = useState<string>('Mumbai');
+  const [toast, setToast] = useState<ToastState>({ visible: false, message: '', type: 'success' });
 
-  // For drawers
   const [showLeftDrawer, setShowLeftDrawer] = useState<boolean>(false);
   const [showRightDrawer, setShowRightDrawer] = useState<boolean>(false);
   const [showTypeSelector, setShowTypeSelector] = useState<boolean>(false);
 
-  // Service types for dropdown
   const serviceTypes: ServiceType[] = [
     { value: 'all', label: 'All Services' },
-    { value: 'women_haircut', label: 'Women\'s Haircuts' },
-    { value: 'men_haircut', label: 'Men\'s Haircuts' },
+    { value: 'women_haircut', label: "Women's Haircut" },
+    { value: 'men_haircut', label: "Men's Haircut" },
     { value: 'nail_service', label: 'Nail Services' },
   ];
 
-  // Fetch data from Supabase
+  // Utility functions for Toast
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ visible: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast((prev) => ({ ...prev, visible: false }));
+  };
+
+  // Fetch beauty services data from Supabase
   const { data: services, error } = useQuery<BeautyService[], Error>({
     queryKey: ['beauty_services', selectedCity],
     queryFn: async () => {
@@ -108,18 +114,16 @@ const BeautyScreen: React.FC = () => {
         .from('beauty_services')
         .select('*')
         .order('rating', { ascending: false });
-      
+
       if (selectedCity) {
-        query = query.eq('city', selectedCity);
+        query = query.eq('city', selectedCity === 'Mumbai' ? 'Mumbai' : 'New Delhi');
       }
-      
+
       const { data, error } = await query;
-      
       if (error) {
         showToast('Error fetching beauty services', 'error');
         throw error;
       }
-      
       return data as BeautyService[];
     },
   });
@@ -130,60 +134,50 @@ const BeautyScreen: React.FC = () => {
     }
   }, [error]);
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success'): void => {
-    setToast({ visible: true, message, type });
+  // Simulate booking process
+  const handlePurchase = (serviceName: string, price: number) => {
+    showToast(`Booking in progress: ${serviceName} (${price} rupees)`);
   };
 
-  const hideToast = (): void => {
-    setToast(prev => ({ ...prev, visible: false }));
-  };
-
-  const handlePurchase = (serviceName: string, price: number): void => {
-    showToast(`Processing booking for ${serviceName} at $${price}`);
-  };
-
-  const filteredServices = services?.filter(service => {
-    const matchesSearch = service.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesType =
-      selectedType === 'all' || service.service_type === selectedType;
+  // Filter services by search query and selected service type
+  const filteredServices = services?.filter((service) => {
+    const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = selectedType === 'all' || service.service_type === selectedType;
     return matchesSearch && matchesType;
   });
 
-  const renderServiceCard = ({ item }: { item: BeautyService }): React.ReactElement => (
+  // Render each service card
+  const renderServiceCard = ({ item }: { item: BeautyService }) => (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
         <Image
           source={{
-            uri: item.image_url || 'https://images.unsplash.com/photo-1560066984-138dadb4c035'
+            uri: item.image_url || 'https://images.unsplash.com/photo-1560066984-138dadb4c035',
           }}
           style={styles.image}
           resizeMode="cover"
         />
         <View style={styles.priceTag}>
-          <Text style={styles.priceText}>${item.price}</Text>
+          <Text style={styles.priceText}>₹{item.price}</Text>
         </View>
       </View>
-      
+
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{item.name}</Text>
         <Text style={styles.cardProvider}>{item.provider}</Text>
         <Text style={styles.cardCity}>{item.city}</Text>
         <Text style={styles.cardDuration}>{item.duration}</Text>
-        
+
         {item.rating && (
           <View style={styles.ratingContainer}>
             <AntDesign name="star" size={16} color="#FFD700" />
-            <Text style={styles.ratingText}>
-              {item.rating.toFixed(1)} / 5
-            </Text>
+            <Text style={styles.ratingText}>{item.rating.toFixed(1)} / 5</Text>
           </View>
         )}
-        
+
         <TouchableOpacity
           style={styles.bookButton}
-          onPress={() => handlePurchase(item.name, item.price || 0)}
+          onPress={() => handlePurchase(item.name, item.price)}
         >
           <Text style={styles.bookButtonText}>Book Now</Text>
         </TouchableOpacity>
@@ -194,51 +188,37 @@ const BeautyScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      
-      {/* Toast notification */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onDismiss={hideToast}
-      />
-      
-      {/* MOBILE NAVBAR */}
-            <View style={styles.navbar}>
-              <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => setShowLeftDrawer(true)}
-              >
-                <Text style={styles.navButtonText}>Cities</Text>
-              </TouchableOpacity>
-              
-              <View style={styles.navTitleContainer}>
-                <Text style={styles.navTitle}></Text>
-                <View style={styles.locationContainer}>
-                  <Feather name="map-pin" size={12} color="#2196F3" />
-                  <Text style={styles.locationText}>{selectedCity}</Text>
-                </View>
-              </View>
-              
-              <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => setShowRightDrawer(true)}
-              >
-                <Text style={styles.navButtonText}>Years</Text>
-              </TouchableOpacity>
-            </View>
-      
-      <LinearGradient
-        colors={['#F5F5F5', '#E5E5E5']}
-        style={styles.gradientBackground}
-      >
+
+      {/* Toast for messages */}
+      <Toast visible={toast.visible} message={toast.message} type={toast.type} onDismiss={hideToast} />
+
+      {/* Mobile Navbar */}
+      <View style={styles.navbar}>
+        <TouchableOpacity style={styles.navButton} onPress={() => setShowLeftDrawer(true)}>
+          <Text style={styles.navButtonText}>City</Text>
+        </TouchableOpacity>
+
+        <View style={styles.navTitleContainer}>
+          <Text style={styles.navTitle} />
+          <View style={styles.locationContainer}>
+            <Feather name="map-pin" size={12} color="#2196F3" />
+            <Text style={styles.locationText}>{selectedCity}</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.navButton} onPress={() => setShowRightDrawer(true)}>
+          <Text style={styles.navButtonText}>Year</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Main Content */}
+      <LinearGradient colors={['#F5F5F5', '#E5E5E5']} style={styles.gradientBackground}>
         <View style={styles.mainContent}>
-          {/* Horizontal PageSlider for navigation */}
           <View style={styles.horizontalSliderContainer}>
             <PageSlider orientation="horizontal" />
           </View>
-          
-          {/* Search & Filter */}
+
+          {/* Search and Filter */}
           <View style={styles.searchFilterContainer}>
             <View style={styles.searchContainer}>
               <Feather name="search" size={20} color="#999" style={styles.searchIcon} />
@@ -249,37 +229,34 @@ const BeautyScreen: React.FC = () => {
                 onChangeText={setSearchQuery}
               />
             </View>
-            
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={() => setShowTypeSelector(true)}
-            >
+
+            <TouchableOpacity style={styles.filterButton} onPress={() => setShowTypeSelector(true)}>
               <Text style={styles.filterButtonText}>
-                {serviceTypes.find(t => t.value === selectedType)?.label || 'Filter'}
+                {serviceTypes.find((t) => t.value === selectedType)?.label || 'Filter Service'}
               </Text>
               <Feather name="chevron-down" size={16} color="#333" />
             </TouchableOpacity>
           </View>
-          
-          {/* Services List */}
+
+          {/* List of Services */}
           {filteredServices && filteredServices.length > 0 ? (
-            <FlatList<BeautyService>
+            <FlatList
               data={filteredServices}
               renderItem={renderServiceCard}
-              keyExtractor={item => item.id.toString()}
+              keyExtractor={(item) => item.id.toString()}
               contentContainerStyle={styles.servicesList}
             />
           ) : (
             <View style={styles.noResults}>
               <Text style={styles.noResultsText}>
-                {services ? 'No services match your search' : 'Loading services...'}
+                {services ? 'No results found' : 'Loading...'}
               </Text>
             </View>
           )}
         </View>
       </LinearGradient>
-      
-      {/* MOBILE LEFT DRAWER (Cities) */}
+
+      {/* Left Drawer (City Selector) */}
       <Modal
         visible={showLeftDrawer}
         transparent={true}
@@ -290,68 +267,49 @@ const BeautyScreen: React.FC = () => {
           <View style={styles.leftDrawer}>
             <View style={styles.drawerHeader}>
               <Text style={styles.drawerTitle}>Select City</Text>
-              <TouchableOpacity
-                onPress={() => setShowLeftDrawer(false)}
-                style={styles.closeButton}
-              >
+              <TouchableOpacity onPress={() => setShowLeftDrawer(false)} style={styles.closeButton}>
                 <Feather name="x" size={20} color="#333" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.verticalSliderWrapper}>
               <View style={styles.cityLabels}>
                 {cities.map((city) => (
                   <TouchableOpacity
                     key={city.name}
-                    onPress={() => {
-                      setSelectedCity(city.name);
-                      // Don't automatically close the drawer
-                      // This allows the user to see the selection and manually close when ready
-                    }}
+                    onPress={() => setSelectedCity(city.name)}
                   >
-                    <Text style={[
-                      styles.cityLabel,
-                      selectedCity === city.name && styles.selectedCityLabel
-                    ]}>
+                    <Text
+                      style={[styles.cityLabel, selectedCity === city.name && styles.selectedCityLabel]}
+                    >
                       {city.name}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               <View style={styles.sliderContainer}>
                 <PageSlider
                   orientation="vertical"
                   type="cities"
                   initialCity={selectedCity}
-                  onCityChange={(city) => {
-                    setSelectedCity(city);
-                    // Don't close the drawer automatically
-                    // setShowLeftDrawer(false); <- Remove or keep commented out
-                  }}
+                  onCityChange={(city) => setSelectedCity(city)}
                   showCityContent={false}
                   style={styles.verticalSlider}
                 />
               </View>
             </View>
 
-            {/* Add a Done button for the user to manually close after selecting */}
-            <TouchableOpacity
-              style={styles.doneButton}
-              onPress={() => setShowLeftDrawer(false)}
-            >
+            <TouchableOpacity style={styles.doneButton} onPress={() => setShowLeftDrawer(false)}>
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
-          
-          <TouchableOpacity
-            style={styles.modalBackground}
-            onPress={() => setShowLeftDrawer(false)}
-          ></TouchableOpacity>
+
+          <TouchableOpacity style={styles.modalBackground} onPress={() => setShowLeftDrawer(false)} />
         </View>
       </Modal>
-      
-      {/* MOBILE RIGHT DRAWER (Years) */}
+
+      {/* Right Drawer (Year Selector) */}
       <Modal
         visible={showRightDrawer}
         transparent={true}
@@ -359,37 +317,27 @@ const BeautyScreen: React.FC = () => {
         onRequestClose={() => setShowRightDrawer(false)}
       >
         <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={styles.modalBackground}
-            onPress={() => setShowRightDrawer(false)}
-          ></TouchableOpacity>
-          
+          <TouchableOpacity style={styles.modalBackground} onPress={() => setShowRightDrawer(false)} />
           <View style={styles.rightDrawer}>
             <View style={styles.drawerHeader}>
-              <TouchableOpacity
-                onPress={() => setShowRightDrawer(false)}
-                style={styles.closeButton}
-              >
+              <TouchableOpacity onPress={() => setShowRightDrawer(false)} style={styles.closeButton}>
                 <Feather name="x" size={20} color="#333" />
               </TouchableOpacity>
               <Text style={styles.drawerTitle}>Select Year</Text>
             </View>
-            
+
             <View style={styles.verticalSliderWrapper}>
               <View style={styles.yearLabels}>
                 {years.map((year) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={year.name}
-                    onPress={() => {
-                      // You can handle year selection here if needed
-                      setShowRightDrawer(false);
-                    }}
+                    onPress={() => setShowRightDrawer(false)}
                   >
                     <Text style={styles.yearLabel}>{year.name}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               <View style={styles.sliderContainer}>
                 <PageSlider
                   orientation="vertical"
@@ -402,8 +350,8 @@ const BeautyScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
-      
-      {/* Service Type Selector Modal */}
+
+      {/* Service Type Selector */}
       <Modal
         visible={showTypeSelector}
         transparent={true}
@@ -413,37 +361,33 @@ const BeautyScreen: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.typeSelector}>
             <Text style={styles.typeSelectorTitle}>Select Service Type</Text>
-            {serviceTypes.map(type => (
+            {serviceTypes.map((type) => (
               <TouchableOpacity
                 key={type.value}
                 style={[
                   styles.typeOption,
-                  selectedType === type.value && styles.selectedTypeOption
+                  selectedType === type.value && styles.selectedTypeOption,
                 ]}
                 onPress={() => {
                   setSelectedType(type.value);
                   setShowTypeSelector(false);
                 }}
               >
-                <Text style={[
-                  styles.typeOptionText,
-                  selectedType === type.value && styles.selectedTypeOptionText
-                ]}>
+                <Text
+                  style={[
+                    styles.typeOptionText,
+                    selectedType === type.value && styles.selectedTypeOptionText,
+                  ]}
+                >
                   {type.label}
                 </Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowTypeSelector(false)}
-            >
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setShowTypeSelector(false)}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.modalBackground}
-            onPress={() => setShowTypeSelector(false)}
-          ></TouchableOpacity>
+          <TouchableOpacity style={styles.modalBackground} onPress={() => setShowTypeSelector(false)} />
         </View>
       </Modal>
     </SafeAreaView>
@@ -451,360 +395,69 @@ const BeautyScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  gradientBackground: {
-    flex: 1,
-  },
-  navbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  navButton: {
-    backgroundColor: '#E5E5E5',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  navButtonText: {
-    fontSize: 14,
-  },
-  navTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  mainContent: {
-    flex: 1,
-  },
-  horizontalSliderContainer: {
-    width: '100%',
-  },
-  searchFilterContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 16,
-    marginVertical: 16,
-    alignItems: 'center',
-    gap: 10,
-  },
-  searchContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-    gap: 8,
-  },
-  filterButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  servicesList: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-  },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  imageContainer: {
-    position: 'relative',
-    height: 180,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  priceTag: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  priceText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  cardContent: {
-    padding: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 6,
-  },
-  cardProvider: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 4,
-  },
-  cardCity: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 4,
-  },
-  cardDuration: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 12,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  ratingText: {
-    marginLeft: 6,
-    fontSize: 14,
-    color: '#666666',
-  },
-  bookButton: {
-    backgroundColor: '#000',
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  bookButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  noResults: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  noResultsText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  modalBackground: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  leftDrawer: {
-    width: 250,
-    backgroundColor: 'white',
-    height: '100%',
-  },
-  rightDrawer: {
-    width: 250,
-    backgroundColor: 'white',
-    height: '100%',
-  },
-  drawerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
-  },
-  drawerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  drawerSlider: {
-    flex: 1,
-  },
-  drawerContent: {
-    flex: 1,
-    paddingVertical: 10,
-  },
-  // New styles for vertical sliders
-  verticalSliderWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    flex: 1,
-  },
-  cityLabels: {
-    height: 300,
-    marginRight: 20,
-    justifyContent: 'space-between',
-  },
-  cityLabel: {
-    fontSize: 16,
-    color: '#666',
-    paddingVertical: 10,
-  },
-  selectedCityLabel: {
-    fontWeight: 'bold',
-    color: '#2196F3',
-  },
-  yearLabels: {
-    height: 300,
-    marginRight: 20,
-    justifyContent: 'space-between',
-  },
-  yearLabel: {
-    fontSize: 16,
-    color: '#666',
-    paddingVertical: 8,
-  },
-  sliderContainer: {
-    height: 300,
-    width: 40,
-    marginLeft: 20,
-  },
-  verticalSlider: {
-    height: 300,
-  },
-  typeSelector: {
-    position: 'absolute',
-    top: '30%',
-    left: '10%',
-    right: '10%',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-    zIndex: 100,
-  },
-  typeSelectorTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  typeOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  selectedTypeOption: {
-    backgroundColor: '#E3F2FD',
-  },
-  typeOptionText: {
-    fontSize: 16,
-  },
-  selectedTypeOptionText: {
-    fontWeight: 'bold',
-    color: '#2196F3',
-  },
-  cancelButton: {
-    marginTop: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#EEEEEE',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: '#FF3B30',
-  },
-  toast: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    right: 20,
-    backgroundColor: '#333',
-    borderRadius: 8,
-    padding: 16,
-    zIndex: 1000,
-    alignItems: 'center',
-  },
-  successToast: {
-    backgroundColor: '#4CAF50',
-  },
-  errorToast: {
-    backgroundColor: '#F44336',
-  },
-  toastText: {
-    color: 'white',
-    fontWeight: '500',
-  },
-
-  navTitleContainer: {
-    alignItems: 'center',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  locationText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
-  },
-  // Added styles for the Done button
-  doneButton: {
-    backgroundColor: '#2196F3',
-    margin: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  doneButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  navbar: { flexDirection: 'row', justifyContent: 'space-between', padding: 8 },
+  navButton: { padding: 8 },
+  navButtonText: { fontSize: 14, fontWeight: 'bold' },
+  navTitleContainer: { alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 16, fontWeight: 'bold' },
+  locationContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  locationText: { marginLeft: 4, fontSize: 12, color: '#2196F3' },
+  gradientBackground: { flex: 1 },
+  mainContent: { flex: 1, padding: 16 },
+  horizontalSliderContainer: { marginBottom: 16 },
+  searchFilterContainer: { flexDirection: 'row', marginBottom: 16, alignItems: 'center' },
+  searchContainer: { flex: 1, flexDirection: 'row', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, paddingHorizontal: 8, alignItems: 'center', marginRight: 8 },
+  searchIcon: { marginRight: 8 },
+  searchInput: { flex: 1, paddingVertical: 4 },
+  filterButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 6, borderWidth: 1, borderColor: '#ccc', borderRadius: 8 },
+  filterButtonText: { marginRight: 4 },
+  card: { marginBottom: 16, backgroundColor: '#fff', borderRadius: 8, overflow: 'hidden', elevation: 3 },
+  imageContainer: { width: '100%', height: 180 },
+  image: { width: '100%', height: '100%' },
+  priceTag: { position: 'absolute', right: 8, bottom: 8, backgroundColor: '#2196F3', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 4 },
+  priceText: { color: '#fff', fontWeight: 'bold' },
+  cardContent: { padding: 8 },
+  cardTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 4 },
+  cardProvider: { fontSize: 14, marginBottom: 2 },
+  cardCity: { fontSize: 14, color: '#555' },
+  cardDuration: { fontSize: 12, marginBottom: 4 },
+  ratingContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  ratingText: { marginLeft: 4 },
+  bookButton: { backgroundColor: '#2196F3', borderRadius: 4, padding: 8, alignItems: 'center' },
+  bookButtonText: { color: '#fff', fontWeight: 'bold' },
+  noResults: { alignItems: 'center', marginTop: 32 },
+  noResultsText: { fontSize: 16, color: '#666' },
+  servicesList: { paddingVertical: 8 },
+  modalOverlay: { flex: 1, flexDirection: 'row' },
+  leftDrawer: { width: 240, backgroundColor: '#fff', padding: 16, elevation: 5 },
+  rightDrawer: { width: 240, backgroundColor: '#fff', padding: 16, marginLeft: 'auto', elevation: 5 },
+  drawerHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
+  drawerTitle: { fontSize: 16, fontWeight: 'bold' },
+  closeButton: { padding: 8 },
+  modalBackground: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
+  verticalSliderWrapper: { flex: 1, flexDirection: 'row' },
+  cityLabels: { justifyContent: 'space-around', marginRight: 16 },
+  cityLabel: { fontSize: 14, marginBottom: 8 },
+  selectedCityLabel: { fontWeight: 'bold', color: '#2196F3' },
+  sliderContainer: { flex: 1 },
+  verticalSlider: { flex: 1 },
+  yearLabels: { justifyContent: 'space-around', marginRight: 16 },
+  yearLabel: { fontSize: 14, marginBottom: 8 },
+  doneButton: { backgroundColor: '#2196F3', borderRadius: 4, padding: 8, alignItems: 'center', marginTop: 16 },
+  doneButtonText: { color: '#fff', fontWeight: 'bold' },
+  toast: { position: 'absolute', top: 60, left: '10%', right: '10%', padding: 12, borderRadius: 8, zIndex: 999 },
+  successToast: { backgroundColor: '#4CAF50' },
+  errorToast: { backgroundColor: '#F44336' },
+  toastText: { color: '#fff', fontWeight: 'bold', textAlign: 'center' },
+  typeSelector: { width: 260, backgroundColor: '#fff', borderRadius: 8, padding: 16, elevation: 5 },
+  typeSelectorTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
+  typeOption: { paddingVertical: 8 },
+  typeOptionText: { fontSize: 14 },
+  selectedTypeOption: { backgroundColor: '#E8F4FF' },
+  selectedTypeOptionText: { color: '#2196F3', fontWeight: 'bold' },
+  cancelButton: { backgroundColor: '#ccc', borderRadius: 4, padding: 8, marginTop: 12, alignItems: 'center' },
+  cancelButtonText: { color: '#333', fontWeight: 'bold' },
 });
 
 export default BeautyScreen;

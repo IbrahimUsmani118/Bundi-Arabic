@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../utils/supabase'; // Adjust path
+import { supabase } from '../utils/supabase'; // Adjust path if needed
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
-  Modal
+  Modal,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import PageSlider from '../components/PageSlider';
@@ -27,11 +27,12 @@ interface EventData {
   type: string;
   rating?: number;
   image_url?: string;
+  city: string;
 }
 
 const EventsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCity, setSelectedCity] = useState<string>('Miami');
+  const [selectedCity, setSelectedCity] = useState<string>('Mumbai');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [showLeftDrawer, setShowLeftDrawer] = useState<boolean>(false);
   const [showRightDrawer, setShowRightDrawer] = useState<boolean>(false);
@@ -69,49 +70,49 @@ const EventsScreen: React.FC = () => {
       id: 1,
       title: "Summer Music Festival",
       date: "2025-07-15T18:00:00",
-      location: "Miami Beach Amphitheater",
+      location: "Mumbai 1",
       price: 85,
       type: "concert",
       rating: 4.8,
       image_url: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3",
-      city: "Miami"
+      city: "Mumbai",
     },
     {
       id: 2,
       title: "Art Basel Exhibition",
       date: "2025-06-05T10:00:00",
-      location: "Miami Convention Center",
+      location: "Mumbai 2",
       price: 45,
       type: "exhibition",
       rating: 4.5,
       image_url: "https://images.unsplash.com/photo-1531058020387-3be344556be6",
-      city: "Miami"
+      city: "Mumbai",
     },
     {
       id: 3,
       title: "Broadway Musical - Hamilton",
       date: "2025-05-22T19:30:00",
-      location: "Richard Rodgers Theatre",
+      location: "New Delhi Location",
       price: 120,
       type: "theater",
       rating: 4.9,
       image_url: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf",
-      city: "New York"
+      city: "New Delhi",
     },
     {
       id: 4,
       title: "Central Park Summer Concert",
       date: "2025-08-10T17:00:00",
-      location: "Central Park Great Lawn",
+      location: "New Delhi 2",
       price: 30,
       type: "concert",
       rating: 4.6,
       image_url: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec",
-      city: "New York"
+      city: "New Delhi",
     }
   ];
 
-  // Display events - use sample data if no events found
+  // Display events – use sample data if no events found
   const displayEvents = (filteredEvents && filteredEvents.length > 0)
     ? filteredEvents
     : (error ? [] : sampleEvents.filter(event => event.city === selectedCity));
@@ -129,7 +130,7 @@ const EventsScreen: React.FC = () => {
     }
   }
 
-  // Instead of a toast, we'll use Alert
+  // Instead of a toast, we'll use Alert for purchase confirmation
   const handlePurchase = (evt: EventData) => {
     Alert.alert(
       'Ticket Reserved!',
@@ -286,15 +287,12 @@ const EventsScreen: React.FC = () => {
             <View style={styles.verticalSliderWrapper}>
               <View style={styles.cityLabels}>
                 {[
-                  { name: "Miami", value: 0 },
-                  { name: "New York", value: 100 },
+                  { name: "Mumbai", value: 0 },
+                  { name: "New Delhi", value: 100 },
                 ].map((city) => (
                   <TouchableOpacity
                     key={city.name}
-                    onPress={() => {
-                      setSelectedCity(city.name);
-                      // Don't automatically close the drawer
-                    }}
+                    onPress={() => setSelectedCity(city.name)}
                   >
                     <Text style={[
                       styles.cityLabel,
@@ -311,10 +309,7 @@ const EventsScreen: React.FC = () => {
                   orientation="vertical"
                   type="cities"
                   initialCity={selectedCity}
-                  onCityChange={(city) => {
-                    setSelectedCity(city);
-                    // Don't close the drawer automatically
-                  }}
+                  onCityChange={(city) => setSelectedCity(city)}
                   showCityContent={false}
                   style={styles.verticalSlider}
                 />
@@ -373,10 +368,7 @@ const EventsScreen: React.FC = () => {
                 ].map((year) => (
                   <TouchableOpacity
                     key={year.name}
-                    onPress={() => {
-                      setSelectedYear(parseInt(year.name));
-                      // Don't automatically close
-                    }}
+                    onPress={() => setSelectedYear(parseInt(year.name))}
                   >
                     <Text style={[
                       styles.yearLabel,
@@ -392,10 +384,7 @@ const EventsScreen: React.FC = () => {
                 <PageSlider
                   orientation="vertical"
                   type="years"
-                  onYearChange={(year) => {
-                    setSelectedYear(year);
-                    // Don't close drawer on selection
-                  }}
+                  onYearChange={(year) => setSelectedYear(year)}
                   showYearContent={false}
                   style={styles.verticalSlider}
                 />
@@ -417,10 +406,7 @@ const EventsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
+  container: { flex: 1, backgroundColor: '#f9fafb' },
   navbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -447,6 +433,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  navTitleContainer: {
+    alignItems: 'center',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  locationText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
+  },
   mainContent: {
     flex: 1,
   },
@@ -460,9 +459,9 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flex: 1,
+    padding: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
   },
   errorText: {
     color: 'red',
@@ -604,7 +603,6 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
-  // New styles for vertical sliders - removed the container style
   verticalSliderWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -626,27 +624,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2196F3',
   },
-
-  navTitleContainer: {
-    alignItems: 'center',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  locationText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
-  },
   yearLabels: {
     height: 300,
     marginRight: 20,
     justifyContent: 'space-between',
   },
   yearLabel: {
-    fontSize: 16, 
+    fontSize: 16,
     color: '#666',
     paddingVertical: 8,
   },

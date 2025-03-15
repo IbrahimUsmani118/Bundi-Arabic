@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../utils/supabase'; // Adjust path
+import { supabase } from '../utils/supabase'; // Adjust path if needed
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
-  Modal
+  Modal,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import PageSlider from '../components/PageSlider';
@@ -30,19 +30,16 @@ interface FlightData {
   seat_type: string;
 }
 
+// Sample airline logos for Saudi airlines
 const airlineLogos: { [key: string]: string } = {
-  'American Airlines':
-    'https://images.unsplash.com/photo-1540339832862-46d6a6c50677?w=100&h=100&fit=crop',
-  'Delta Airlines':
-    'https://images.unsplash.com/photo-1579256945418-f3b7eaa1e26f?w=100&h=100&fit=crop',
-  'United Airlines':
-    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=100&h=100&fit=crop',
-  'JetBlue Airways':
-    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=100&h=100&fit=crop',
+  'Saudia Airlines':
+    'https://via.placeholder.com/100x100.png?text=Saudia',
+  'Flynas':
+    'https://via.placeholder.com/100x100.png?text=Flynas',
 };
 
 const PlaneScreen: React.FC = () => {
-  const [selectedCity, setSelectedCity] = useState<string>('Miami');
+  const [selectedCity, setSelectedCity] = useState<string>('Riyadh');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showLeftDrawer, setShowLeftDrawer] = useState<boolean>(false);
@@ -60,56 +57,56 @@ const PlaneScreen: React.FC = () => {
       if (error) throw error;
       
       console.log('Flight data:', data);
-      return data as FlightData[];
+      return data;
     },
   });
 
-  // Sample flight data
+  // Sample flight data for Saudi market
   const sampleFlights = [
     {
       id: 1,
-      airline: "American Airlines",
-      flight_number: "AA123",
-      departure_city: "Miami",
-      arrival_city: "Los Angeles",
+      airline: "Saudia Airlines",
+      flight_number: "SV101",
+      departure_city: "Riyadh",
+      arrival_city: "Jeddah",
       departure_time: "2025-06-15T08:30:00",
-      arrival_time: "2025-06-15T11:45:00",
-      price: 329,
-      seat_type: "Economy"
+      arrival_time: "2025-06-15T10:45:00",
+      price: 150,
+      seat_type: "Economy",
     },
     {
       id: 2,
-      airline: "Delta Airlines",
-      flight_number: "DL456",
-      departure_city: "Miami",
-      arrival_city: "Chicago",
+      airline: "Flynas",
+      flight_number: "FN202",
+      departure_city: "Riyadh",
+      arrival_city: "Dammam",
       departure_time: "2025-06-16T10:15:00",
-      arrival_time: "2025-06-16T12:30:00",
-      price: 275,
-      seat_type: "Premium Economy"
+      arrival_time: "2025-06-16T11:30:00",
+      price: 100,
+      seat_type: "Economy",
     },
     {
       id: 3,
-      airline: "United Airlines",
-      flight_number: "UA789",
-      departure_city: "New York",
-      arrival_city: "San Francisco",
+      airline: "Saudia Airlines",
+      flight_number: "SV303",
+      departure_city: "Jeddah",
+      arrival_city: "Riyadh",
       departure_time: "2025-06-20T07:45:00",
-      arrival_time: "2025-06-20T11:15:00",
-      price: 425,
-      seat_type: "Business"
+      arrival_time: "2025-06-20T09:45:00",
+      price: 180,
+      seat_type: "Business",
     },
     {
       id: 4,
-      airline: "JetBlue Airways",
-      flight_number: "B6101",
-      departure_city: "New York",
-      arrival_city: "Boston",
+      airline: "Flynas",
+      flight_number: "FN404",
+      departure_city: "Jeddah",
+      arrival_city: "Dammam",
       departure_time: "2025-06-22T14:30:00",
       arrival_time: "2025-06-22T15:45:00",
-      price: 189,
-      seat_type: "Economy"
-    }
+      price: 120,
+      seat_type: "Premium Economy",
+    },
   ];
 
   // Filter flights by airline, flight number, or arrival city
@@ -119,7 +116,7 @@ const PlaneScreen: React.FC = () => {
     flight.arrival_city.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  // Display flights - use sample data if no flights found
+  // Display flights – use sample data if no flights found
   const displayFlights = (filteredFlights && filteredFlights.length > 0)
     ? filteredFlights
     : (error ? [] : sampleFlights.filter(flight => flight.departure_city === selectedCity));
@@ -130,7 +127,7 @@ const PlaneScreen: React.FC = () => {
       <View style={styles.headerRow}>
         <View style={styles.airlineInfo}>
           <Image
-            source={{ uri: airlineLogos[item.airline] || '' }}
+            source={{ uri: airlineLogos[item.airline] || 'https://via.placeholder.com/100' }}
             style={styles.airlineLogo}
           />
           <View>
@@ -156,7 +153,6 @@ const PlaneScreen: React.FC = () => {
             })}
           </Text>
         </View>
-        {/* A simple plane icon or emoji */}
         <Text style={styles.planeIcon}>✈️</Text>
         <View style={styles.cityColumn}>
           <Text style={[styles.cityName, { textAlign: 'right' }]}>
@@ -200,30 +196,29 @@ const PlaneScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* MOBILE NAVBAR */}
-      {/* MOBILE NAVBAR */}
-            <View style={styles.navbar}>
-              <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => setShowLeftDrawer(true)}
-              >
-                <Text style={styles.navButtonText}>Cities</Text>
-              </TouchableOpacity>
-              
-              <View style={styles.navTitleContainer}>
-                <Text style={styles.navTitle}></Text>
-                <View style={styles.locationContainer}>
-                  <Feather name="map-pin" size={12} color="#2196F3" />
-                  <Text style={styles.locationText}>{selectedCity}</Text>
-                </View>
-              </View>
-              
-              <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => setShowRightDrawer(true)}
-              >
-                <Text style={styles.navButtonText}>Years</Text>
-              </TouchableOpacity>
-            </View>
+      <View style={styles.navbar}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => setShowLeftDrawer(true)}
+        >
+          <Text style={styles.navButtonText}>Cities</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.navTitleContainer}>
+          <Text style={styles.navTitle}></Text>
+          <View style={styles.locationContainer}>
+            <Feather name="map-pin" size={12} color="#2196F3" />
+            <Text style={styles.locationText}>{selectedCity}</Text>
+          </View>
+        </View>
+        
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => setShowRightDrawer(true)}
+        >
+          <Text style={styles.navButtonText}>Years</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.mainContent}>
         {/* Horizontal PageSlider for navigation */}
@@ -280,14 +275,14 @@ const PlaneScreen: React.FC = () => {
             <View style={styles.verticalSliderWrapper}>
               <View style={styles.cityLabels}>
                 {[
-                  { name: "Miami", value: 0 },
-                  { name: "New York", value: 100 },
+                  { name: "Riyadh", value: 0 },
+                  { name: "Jeddah", value: 100 },
                 ].map((city) => (
                   <TouchableOpacity
                     key={city.name}
                     onPress={() => {
                       setSelectedCity(city.name);
-                      // Don't automatically close the drawer
+                      // Optionally, do not automatically close the drawer
                     }}
                   >
                     <Text style={[
@@ -305,17 +300,13 @@ const PlaneScreen: React.FC = () => {
                   orientation="vertical"
                   type="cities"
                   initialCity={selectedCity}
-                  onCityChange={(city) => {
-                    setSelectedCity(city);
-                    // Don't close the drawer automatically
-                  }}
+                  onCityChange={(city) => setSelectedCity(city)}
                   showCityContent={false}
                   style={styles.verticalSlider}
                 />
               </View>
             </View>
 
-            {/* Done button for closing drawer */}
             <TouchableOpacity
               style={styles.doneButton}
               onPress={() => setShowLeftDrawer(false)}
@@ -327,7 +318,7 @@ const PlaneScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.modalBackground}
             onPress={() => setShowLeftDrawer(false)}
-          ></TouchableOpacity>
+          />
         </View>
       </Modal>
       
@@ -342,7 +333,7 @@ const PlaneScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.modalBackground}
             onPress={() => setShowRightDrawer(false)}
-          ></TouchableOpacity>
+          />
           
           <View style={styles.rightDrawer}>
             <View style={styles.drawerHeader}>
@@ -367,10 +358,7 @@ const PlaneScreen: React.FC = () => {
                 ].map((year) => (
                   <TouchableOpacity
                     key={year.name}
-                    onPress={() => {
-                      setSelectedYear(parseInt(year.name));
-                      // Don't automatically close
-                    }}
+                    onPress={() => setSelectedYear(parseInt(year.name))}
                   >
                     <Text style={[
                       styles.yearLabel,
@@ -386,17 +374,13 @@ const PlaneScreen: React.FC = () => {
                 <PageSlider
                   orientation="vertical"
                   type="years"
-                  onYearChange={(year) => {
-                    setSelectedYear(year);
-                    // Don't close drawer on selection
-                  }}
+                  onYearChange={(year) => setSelectedYear(year)}
                   showYearContent={false}
                   style={styles.verticalSlider}
                 />
               </View>
             </View>
             
-            {/* Done button for closing drawer */}
             <TouchableOpacity
               style={styles.doneButton}
               onPress={() => setShowRightDrawer(false)}
@@ -440,6 +424,19 @@ const styles = StyleSheet.create({
   navTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  navTitleContainer: {
+    alignItems: 'center',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  locationText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
   },
   mainContent: {
     flex: 1,
@@ -514,14 +511,14 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   seatBadge: {
-    backgroundColor: '#BFDBFE', // tailwind: bg-blue-200
+    backgroundColor: '#BFDBFE',
     borderRadius: 16,
     paddingHorizontal: 8,
     paddingVertical: 4,
     alignSelf: 'flex-start',
   },
   seatBadgeText: {
-    color: '#1E3A8A', // text-blue-900
+    color: '#1E3A8A',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -614,7 +611,6 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
-  // New styles for vertical sliders - removed box style
   verticalSliderWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -636,27 +632,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2196F3',
   },
-
-  navTitleContainer: {
-    alignItems: 'center',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  locationText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
-  },
   yearLabels: {
     height: 300,
     marginRight: 20,
     justifyContent: 'space-between',
   },
   yearLabel: {
-    fontSize: 16, 
+    fontSize: 16,
     color: '#666',
     paddingVertical: 8,
   },

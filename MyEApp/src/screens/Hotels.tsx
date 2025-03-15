@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../utils/supabase'; // Adjust the path
+import { supabase } from '../utils/supabase'; // Adjust path if needed
 import {
   View,
   Text,
@@ -17,185 +17,185 @@ import {
 import { Feather } from '@expo/vector-icons';
 import PageSlider from '../components/PageSlider';
 
-// Define types for the data
-interface HotelData {
+// Define types
+interface EventData {
   id: number;
-  name: string;
+  title: string;
+  date: string;
   location: string;
-  city: string; // Make sure this field exists
-  price_per_night: number;
-  rating: number;
-  image_url: string;
-  amenities: string[];
+  price: number;
+  type: string;
+  rating?: number;
+  image_url?: string;
+  city: string;
 }
 
-const HotelsScreen: React.FC = () => {
+const EventsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCity, setSelectedCity] = useState<string>('Miami');
+  // Update cities for Saudi customers
+  const [selectedCity, setSelectedCity] = useState<string>('Riyadh');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [showLeftDrawer, setShowLeftDrawer] = useState<boolean>(false);
   const [showRightDrawer, setShowRightDrawer] = useState<boolean>(false);
 
-  // Fetch data using React Query - MODIFIED QUERY
-  const { data: hotels, isLoading, error } = useQuery<HotelData[], Error>({
-    queryKey: ['resorts', selectedCity],
+  // Query: fetch events
+  const { data: events, isLoading, error } = useQuery<EventData[], Error>({
+    queryKey: ['events', selectedCity],
     queryFn: async () => {
-      let query = supabase.from('resorts').select('*').order('rating', { ascending: false });
-      
+      let query = supabase
+        .from('events')
+        .select('*')
+        .order('date', { ascending: true });
       if (selectedCity) {
-        // Change from ilike to eq to match other screens
         query = query.eq('city', selectedCity);
-        
-        // If that doesn't work, you can try with the location field again as a fallback
-        // Uncomment this if the city field doesn't exist in your table
-        // query = query.ilike('location', `%${selectedCity}%`);
       }
-      
       const { data, error } = await query;
       if (error) throw error;
-      
-      // For debugging - log the data to see what's coming back
-      console.log('Hotel data:', data);
-      
-      return data as HotelData[];
+      return data as EventData[];
     },
   });
 
+  // Debug log
   useEffect(() => {
     console.log('Selected city:', selectedCity);
   }, [selectedCity]);
 
-  // Filter hotels by search query
-  const filteredHotels = hotels?.filter((hotel) =>
-    hotel.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter events by search query
+  const filteredEvents = events?.filter((evt) =>
+    evt.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Basic "toast" replacement using Alert
-  const handlePurchase = (hotelName: string, price: number) => {
+  // Sample data when no events are found
+  const sampleEvents = [
+    {
+      id: 1,
+      title: "Summer Music Festival",
+      date: "2025-07-15T18:00:00",
+      location: "Riyadh Venue 1",
+      price: 85,
+      type: "concert",
+      rating: 4.8,
+      image_url: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3",
+      city: "Riyadh",
+    },
+    {
+      id: 2,
+      title: "Art Basel Exhibition",
+      date: "2025-06-05T10:00:00",
+      location: "Riyadh Venue 2",
+      price: 45,
+      type: "exhibition",
+      rating: 4.5,
+      image_url: "https://images.unsplash.com/photo-1531058020387-3be344556be6",
+      city: "Riyadh",
+    },
+    {
+      id: 3,
+      title: "Broadway Musical - Hamilton",
+      date: "2025-05-22T19:30:00",
+      location: "Jeddah Theater",
+      price: 120,
+      type: "theater",
+      rating: 4.9,
+      image_url: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf",
+      city: "Jeddah",
+    },
+    {
+      id: 4,
+      title: "Central Park Summer Concert",
+      date: "2025-08-10T17:00:00",
+      location: "Jeddah Concert Hall",
+      price: 30,
+      type: "concert",
+      rating: 4.6,
+      image_url: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec",
+      city: "Jeddah",
+    }
+  ];
+
+  // Display events – use sample data if no events found
+  const displayEvents = (filteredEvents && filteredEvents.length > 0)
+    ? filteredEvents
+    : (error ? [] : sampleEvents.filter(event => event.city === selectedCity));
+
+  // Basic placeholder icon logic
+  function getEventIcon(type: string) {
+    if (!type) return '🎟';
+    switch (type.toLowerCase()) {
+      case 'concert':
+        return '🎵';
+      case 'theater':
+        return '🎭';
+      default:
+        return '🎟';
+    }
+  }
+
+  // Use Alert for purchase confirmation
+  const handlePurchase = (evt: EventData) => {
     Alert.alert(
-      'Booking Initiated',
-      `Processing booking for ${hotelName} at $${price}/night`
+      'Ticket Reserved!',
+      `You've reserved a ticket for ${evt.title}. Total: $${evt.price}`
     );
   };
 
-  // Example star rendering
-  function renderStars(rating: number | null) {
-    if (!rating) return null;
-    return [...Array(5)].map((_, index) => {
-      const isFilled = index < Math.floor(rating);
-      return (
-        <Text
-          key={index}
-          style={[styles.star, isFilled ? styles.starFilled : styles.starEmpty]}
-        >
-          ★
-        </Text>
-      );
-    });
-  }
-
-  // Render each hotel item
-  const renderHotelItem = ({ item }: { item: HotelData }) => (
+  const renderEventItem = ({ item }: { item: EventData }) => (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
         <Image
           source={{
             uri: item.image_url
               ? item.image_url
-              : 'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+              : 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3',
           }}
           style={styles.image}
         />
-        {item.price_per_night && (
-          <View style={styles.priceBadge}>
-            <Text style={styles.priceText}>${item.price_per_night}</Text>
-            <Text style={styles.nightText}>/night</Text>
-          </View>
-        )}
+        <View style={styles.priceBadge}>
+          <Text style={styles.priceText}>${item.price}</Text>
+        </View>
       </View>
 
       <View style={styles.cardContent}>
-        <Text style={styles.title}>{item.name}</Text>
-        <Text style={styles.location}>{item.location}</Text>
-
-        {/* Rating Row */}
-        <View style={styles.ratingRow}>
-          <View style={styles.starsContainer}>{renderStars(item.rating)}</View>
-          {item.rating && (
-            <Text style={styles.ratingValue}>{item.rating.toFixed(1)} / 5</Text>
-          )}
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.icon}>{getEventIcon(item.type)}</Text>
         </View>
 
-        {/* Amenities */}
-        {item.amenities?.length ? (
-          <View style={styles.amenitiesContainer}>
-            {item.amenities.map((amenity: string, index: number) => (
-              <Text key={index} style={styles.amenity}>
-                {amenity}
-              </Text>
-            ))}
-          </View>
-        ) : null}
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>Date: </Text>
+          <Text style={styles.value}>
+            {new Date(item.date).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </Text>
+        </View>
 
-        {/* Book Button */}
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>Location: </Text>
+          <Text style={styles.value}>{item.location}</Text>
+        </View>
+
+        {item.rating && (
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Rating: </Text>
+            <Text style={styles.value}>{item.rating.toFixed(1)} / 5</Text>
+          </View>
+        )}
+
         <TouchableOpacity
-          style={styles.bookButton}
-          onPress={() => handlePurchase(item.name, item.price_per_night || 0)}
+          style={styles.purchaseButton}
+          onPress={() => handlePurchase(item)}
         >
-          <Text style={styles.bookButtonText}>Book Now</Text>
+          <Text style={styles.purchaseButtonText}>Purchase Ticket</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
-
-  // Add some sample hotels if we don't have any data
-  const sampleHotels = [
-    {
-      id: 1,
-      name: "Miami Beachfront Resort",
-      location: "Ocean Drive, Miami Beach",
-      city: "Miami",
-      price_per_night: 299,
-      rating: 4.5,
-      image_url: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800",
-      amenities: ["Pool", "Spa", "Ocean View", "Restaurant"]
-    },
-    {
-      id: 2,
-      name: "Downtown Miami Suites",
-      location: "Brickell Avenue, Miami",
-      city: "Miami",
-      price_per_night: 199,
-      rating: 4.2,
-      image_url: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800",
-      amenities: ["Business Center", "Fitness Center", "Free WiFi"]
-    },
-    {
-      id: 3,
-      name: "New York Luxury Hotel",
-      location: "5th Avenue, Manhattan",
-      city: "New York",
-      price_per_night: 499,
-      rating: 4.8,
-      image_url: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800",
-      amenities: ["Concierge", "City View", "Spa", "Restaurant"]
-    },
-    {
-      id: 4,
-      name: "Brooklyn Boutique Inn",
-      location: "Williamsburg, Brooklyn",
-      city: "New York",
-      price_per_night: 249,
-      rating: 4.3,
-      image_url: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800",
-      amenities: ["Rooftop Bar", "Free Breakfast", "Art Gallery"]
-    }
-  ];
-
-  // Show sample hotels if we don't have any data and there's no error
-  const displayHotels = (filteredHotels && filteredHotels.length > 0) 
-    ? filteredHotels 
-    : (error ? [] : sampleHotels.filter(hotel => hotel.city === selectedCity));
 
   if (isLoading) {
     return (
@@ -208,59 +208,59 @@ const HotelsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* MOBILE NAVBAR */}
-            <View style={styles.navbar}>
-              <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => setShowLeftDrawer(true)}
-              >
-                <Text style={styles.navButtonText}>Cities</Text>
-              </TouchableOpacity>
-              
-              <View style={styles.navTitleContainer}>
-                <Text style={styles.navTitle}></Text>
-                <View style={styles.locationContainer}>
-                  <Feather name="map-pin" size={12} color="#2196F3" />
-                  <Text style={styles.locationText}>{selectedCity}</Text>
-                </View>
-              </View>
-              
-              <TouchableOpacity
-                style={styles.navButton}
-                onPress={() => setShowRightDrawer(true)}
-              >
-                <Text style={styles.navButtonText}>Years</Text>
-              </TouchableOpacity>
-            </View>
+      <View style={styles.navbar}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => setShowLeftDrawer(true)}
+        >
+          <Text style={styles.navButtonText}>Cities</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.navTitleContainer}>
+          <Text style={styles.navTitle}></Text>
+          <View style={styles.locationContainer}>
+            <Feather name="map-pin" size={12} color="#2196F3" />
+            <Text style={styles.locationText}>{selectedCity}</Text>
+          </View>
+        </View>
+        
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => setShowRightDrawer(true)}
+        >
+          <Text style={styles.navButtonText}>Years</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.mainContent}>
         {/* Horizontal PageSlider for navigation */}
         <View style={styles.horizontalSliderContainer}>
           <PageSlider orientation="horizontal" />
         </View>
-      
+        
         {/* Search Bar */}
         <View style={styles.searchRow}>
           <Feather name="search" size={20} color="#999" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search hotels..."
+            placeholder="Search events..."
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
 
-        {/* Hotels List */}
-        {displayHotels.length > 0 ? (
+        {/* List of events */}
+        {displayEvents.length > 0 ? (
           <FlatList
-            data={displayHotels}
+            data={displayEvents}
             keyExtractor={(item) => item.id.toString()}
-            renderItem={renderHotelItem}
+            renderItem={renderEventItem}
             contentContainerStyle={styles.listContent}
           />
         ) : (
           <View style={styles.noResultsContainer}>
             <Text style={styles.noResultsText}>
-              No hotels found for "{selectedCity}"
+              No events found for "{selectedCity}"
             </Text>
           </View>
         )}
@@ -288,15 +288,12 @@ const HotelsScreen: React.FC = () => {
             <View style={styles.verticalSliderWrapper}>
               <View style={styles.cityLabels}>
                 {[
-                  { name: "Miami", value: 0 },
-                  { name: "New York", value: 100 },
+                  { name: "Riyadh", value: 0 },
+                  { name: "Jeddah", value: 100 },
                 ].map((city) => (
                   <TouchableOpacity
                     key={city.name}
-                    onPress={() => {
-                      setSelectedCity(city.name);
-                      // Don't automatically close the drawer
-                    }}
+                    onPress={() => setSelectedCity(city.name)}
                   >
                     <Text style={[
                       styles.cityLabel,
@@ -313,10 +310,7 @@ const HotelsScreen: React.FC = () => {
                   orientation="vertical"
                   type="cities"
                   initialCity={selectedCity}
-                  onCityChange={(city) => {
-                    setSelectedCity(city);
-                    // Don't close the drawer automatically
-                  }}
+                  onCityChange={(city) => setSelectedCity(city)}
                   showCityContent={false}
                   style={styles.verticalSlider}
                 />
@@ -375,10 +369,7 @@ const HotelsScreen: React.FC = () => {
                 ].map((year) => (
                   <TouchableOpacity
                     key={year.name}
-                    onPress={() => {
-                      setSelectedYear(parseInt(year.name));
-                      // Don't automatically close
-                    }}
+                    onPress={() => setSelectedYear(parseInt(year.name))}
                   >
                     <Text style={[
                       styles.yearLabel,
@@ -394,10 +385,7 @@ const HotelsScreen: React.FC = () => {
                 <PageSlider
                   orientation="vertical"
                   type="years"
-                  onYearChange={(year) => {
-                    setSelectedYear(year);
-                    // Don't close drawer on selection
-                  }}
+                  onYearChange={(year) => setSelectedYear(year)}
                   showYearContent={false}
                   style={styles.verticalSlider}
                 />
@@ -419,10 +407,7 @@ const HotelsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
+  container: { flex: 1, backgroundColor: '#f9fafb' },
   navbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -449,6 +434,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  navTitleContainer: {
+    alignItems: 'center',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  locationText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 4,
+  },
   mainContent: {
     flex: 1,
   },
@@ -462,9 +460,9 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flex: 1,
+    padding: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
   },
   errorText: {
     color: 'red',
@@ -477,10 +475,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginHorizontal: 16,
     marginVertical: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
     elevation: 2,
   },
   searchIcon: {
@@ -504,7 +498,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: 'relative',
     width: '100%',
-    height: 200,
+    height: 180,
   },
   image: {
     width: '100%',
@@ -516,84 +510,57 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     backgroundColor: '#fff',
-    borderRadius: 16,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    borderRadius: 16,
+    elevation: 2,
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 2,
   },
   priceText: {
     fontWeight: 'bold',
     fontSize: 16,
-    marginRight: 4,
-  },
-  nightText: {
-    fontSize: 12,
-    color: '#666',
   },
   cardContent: {
     padding: 12,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 6,
-  },
-  location: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    marginRight: 6,
-  },
-  star: {
-    fontSize: 16,
-    marginRight: 2,
-  },
-  starFilled: {
-    color: '#FFD700', // gold
-  },
-  starEmpty: {
-    color: '#ccc',
-  },
-  ratingValue: {
-    fontSize: 14,
-    color: '#666',
-  },
-  amenitiesContainer: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 8,
+    maxWidth: '80%',
   },
-  amenity: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    fontSize: 12,
+  icon: {
+    fontSize: 20,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  label: {
+    fontWeight: 'bold',
     color: '#333',
-    marginRight: 6,
-    marginBottom: 6,
   },
-  bookButton: {
-    marginTop: 8,
+  value: {
+    color: '#555',
+  },
+  purchaseButton: {
+    marginTop: 12,
     backgroundColor: '#000',
-    borderRadius: 6,
     paddingVertical: 10,
+    borderRadius: 6,
     alignItems: 'center',
   },
-  bookButtonText: {
+  purchaseButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
+    fontSize: 16,
   },
   noResultsContainer: {
     flex: 1,
@@ -637,30 +604,12 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
-  drawerSlider: {
-    flex: 1,
-  },
-  // New styles for vertical sliders
   verticalSliderWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
     flex: 1,
-  },
-
-  navTitleContainer: {
-    alignItems: 'center',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  locationText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
   },
   cityLabels: {
     height: 300,
@@ -682,7 +631,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   yearLabel: {
-    fontSize: 16, 
+    fontSize: 16,
     color: '#666',
     paddingVertical: 8,
   },
@@ -712,4 +661,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HotelsScreen;
+export default EventsScreen;
