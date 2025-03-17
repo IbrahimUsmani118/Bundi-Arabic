@@ -9,7 +9,7 @@ import {
   ViewStyle,
   StyleProp,
 } from 'react-native';
-
+import { MoreVertical } from 'react-native-feather';
 
 interface PanelProps {
   /** Panel content. */
@@ -64,7 +64,7 @@ export function ResizableHandle({ withHandle, onPress }: HandleProps) {
     <TouchableOpacity style={styles.handle} onPress={onPress}>
       {withHandle && (
         <View style={styles.handleIcon}>
-          <GripVertical width={16} height={16} color="#666" />
+          <MoreVertical width={16} height={16} color="#666" />
         </View>
       )}
     </TouchableOpacity>

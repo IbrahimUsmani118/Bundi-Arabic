@@ -39,8 +39,8 @@ const navigationPages: NavigationItem[] = [
 ];
 
 const cities: CityItem[] = [
-  { name: "Miami", value: 0 },
-  { name: "New York", value: 100 },
+  { name: "Jeddah", value: 0 },
+  { name: "Riyadh", value: 100 },
 ];
 
 const years: YearItem[] = [
@@ -378,9 +378,9 @@ export const PageSlider: React.FC<PageSliderProps> = ({
       {/* City content if type=cities */}
       {type === "cities" && showCityContent && selectedCity && (
         <View style={styles.contentContainer}>
-          {selectedCity === "New York" && (
+          {selectedCity === "Riydah" && (
             <View>
-              <Text style={styles.contentTitle}>Things in New York</Text>
+              <Text style={styles.contentTitle}>Things in Riydah</Text>
               <View style={styles.listContainer}>
                 <Text style={styles.listItem}>• Broadway Shows</Text>
                 <Text style={styles.listItem}>• Statue of Liberty Tours</Text>
@@ -388,9 +388,9 @@ export const PageSlider: React.FC<PageSliderProps> = ({
               </View>
             </View>
           )}
-          {selectedCity === "Miami" && (
+          {selectedCity === "Jeddah" && (
             <View>
-              <Text style={styles.contentTitle}>Things in Miami</Text>
+              <Text style={styles.contentTitle}>Things in Jeddah</Text>
               <View style={styles.listContainer}>
                 <Text style={styles.listItem}>• South Beach Parties</Text>
                 <Text style={styles.listItem}>• Art Deco District Tours</Text>

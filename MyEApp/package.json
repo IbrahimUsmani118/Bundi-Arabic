@@ -1,5 +1,5 @@
 {
-  "name": "myeapp",
+  "name": "myeapp-arabic",
   "license": "0BSD",
   "version": "1.0.0",
   "main": "index.js",
@@ -18,17 +18,18 @@
     "@supabase/supabase-js": "^2.48.1",
     "@tanstack/react-query": "^5.66.9",
     "cli": "^1.0.1",
-    "expo": "~52.0.37",
+    "expo": "^52.0.38",
     "expo-linear-gradient": "^14.0.2",
     "expo-status-bar": "~2.0.1",
     "hermes-parser": "^0.26.0",
     "i18next": "^24.2.2",
     "lucide-react-native": "^0.475.0",
     "react": "18.3.1",
+    "react-hook-form": "^7.54.2",
     "react-i18next": "^15.4.1",
     "react-native": "0.76.7",
     "react-native-calendars": "^1.1309.1",
-    "react-native-dotenv": "^3.4.11",
+    "react-native-feather": "^1.1.2",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-localize": "^3.4.1",
     "react-native-reanimated": "~3.16.1",
@@ -38,11 +39,28 @@
     "react-native-url-polyfill": "^2.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
+    "@babel/core": "^7.26.10",
+    "@react-native-community/cli": "^18.0.0",
     "@types/react": "~18.3.12",
-    "@types/react-native": "^0.70.19",
+    "babel-plugin-dotenv": "^0.1.1",
     "babel-plugin-module-resolver": "^5.0.2",
+    "react-native-dotenv": "^3.4.11",
+    "tailwindcss": "^4.0.14",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.3.3"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "cli",
+          "hermes-parser",
+          "i18next",
+          "react-native-feather",
+          "lucide-react-native"
+        ]
+      }
+    }
   },
   "private": true
 }

@@ -22,7 +22,7 @@ import {
  */
 const Rentals: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCity, setSelectedCity] = useState('Miami');
+  const [selectedCity, setSelectedCity] = useState('Jeddah');
 
   useEffect(() => {
     console.log('Selected city:', selectedCity);
@@ -57,7 +57,7 @@ const Rentals: React.FC = () => {
   const getRentalData = (index: number) => {
     if (
       selectedCity.toLowerCase() === 'ny' ||
-      selectedCity.toLowerCase() === 'new york'
+      selectedCity.toLowerCase() === 'Riydah'
     ) {
       const rentalDataNY = [
         {
@@ -72,7 +72,7 @@ const Rentals: React.FC = () => {
         },
       ];
       return rentalDataNY[index % rentalDataNY.length];
-    } else if (selectedCity.toLowerCase() === 'miami') {
+    } else if (selectedCity.toLowerCase() === 'Jeddah') {
       return {
         image:
           'https://unsplash.com/photos/red-ferrari-458-italia-on-gray-asphalt-road-79-SQCseV08',

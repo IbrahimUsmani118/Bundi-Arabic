@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MyEApp",
-    "slug": "MyEApp",
+    "name": "MyEApp-Arabic",
+    "slug": "MyEApp-Arabic",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.omatwt-slidebar.MyEApp",
+      "bundleIdentifier": "com.omatwt-slidebar.MyEApp-Arabic",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.bundi123456.MyEApp"
+      "package": "com.bundi123456.MyEApp-Arabic"
     },
     "web": {
       "favicon": "./assets/favicon.png"

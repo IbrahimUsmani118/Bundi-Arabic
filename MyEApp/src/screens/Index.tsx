@@ -46,7 +46,7 @@ const Home: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
 
   // Use English as the default language; Arabic translations will be loaded via i18n configuration
-  const [selectedCity, setSelectedCity] = useState('Miami');
+  const [selectedCity, setSelectedCity] = useState('Jeddah');
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [sliderValue, setSliderValue] = useState(0);
 

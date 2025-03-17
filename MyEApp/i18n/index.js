@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import * as Localization from 'react-native-localize';
 
 import en from './en.json';
-import hi from './hi.json';
+import ar from './ar.json';
 
 // Detect user language
 const fallback = { languageTag: 'en', isRTL: false };
@@ -15,7 +15,7 @@ i18n
     compatibilityJSON: 'v3', // for react-native compatibility
     resources: {
       en: { translation: en },
-      hi: { translation: hi }
+      ar: { translation: ar }
     },
     lng: languageTag, // Set default language based on user’s locale
     fallbackLng: 'en', // Default to English if translation is missing

@@ -14,8 +14,8 @@ const HeroSection = () => {
     >
       <View style={styles.overlay} />
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to Miami</Text>
-        <Text style={styles.subtitle}>Discover the magic of the Magic City</Text>
+        <Text style={styles.title}>Welcome to Jeddah</Text>
+        <Text style={styles.subtitle}>Discover the magic of this Historical City</Text>
       </View>
     </ImageBackground>
   );
